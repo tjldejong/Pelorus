@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Pelorus</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main_menu">MainMenu</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="speedlbl">Speed:</string>
+    <string name="speed">0</string>
+    <string name="joinEvent">Join Event</string>
+    <string name="createEvent">Create Event</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_create_event">Create Event</string>
+
+</resources>
