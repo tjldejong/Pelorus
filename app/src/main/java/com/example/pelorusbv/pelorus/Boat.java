@@ -1,14 +1,12 @@
 package com.example.pelorusbv.pelorus;
 
-import android.location.LocationManager;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
 /**
  * Created by Menso on 16-2-2015.
  */
-public class Boat extends MapsActivity {
+public class Boat extends ActivityDashboard {
 
     private LatLng boatPos;
     private LatLng oldBoatPos;
@@ -35,7 +33,7 @@ public class Boat extends MapsActivity {
         boatPos = new LatLng(x, y);
     }
 
-    public double getSpeed(double dt, int t, PositionsDataSource dataSource1) {
+    public double getSpeed(double dt, int t, DataSourcePositions dataSource1) {
         if (t > 1) {
             oldLat = dataSource1.getPosLat(t - (int)dt);
             oldLng = dataSource1.getPosLng(t - (int) dt);

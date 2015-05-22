@@ -9,11 +9,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
+
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -26,11 +27,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, DisplayFragment.OnFragmentInteractionListener  {
+public class ActivityDashboard extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener  {
 
     protected static final String TAG = "basic-location-sample";
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-//    private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
     private Boat boat1;
     private Buoy Start;
     private Buoy mark1;
@@ -45,7 +46,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     /**
      * Represents a geographical location.
      */
-//    protected Location mLastLocation;
+    protected Location mLastLocation;
+    LatLng myPos;
 //
 //    protected TextView mLatitudeText;
 //    protected TextView mLongitudeText;
@@ -57,18 +59,14 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     Marker Boat1Marker;
 
-    public PositionsDataSource dataSource;
+    DataSourcePositions dataSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         time = 0;
-        dataSource = new PositionsDataSource(this);
-        try {
-            dataSource.open();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+        dataSource = new DataSourcePositions(this);
 
         boat1 = new Boat((52.365319), 5.069827);
 
@@ -78,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
         pampus = new Buoy(52.365319, 5.069827);
 
-//        buildGoogleApiClient();
+        buildGoogleApiClient();
 
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
@@ -87,18 +85,24 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
 
-//    protected synchronized void buildGoogleApiClient() {
-//       mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .addApi(LocationServices.API)
-//                .build();
-//    }
+    protected synchronized void buildGoogleApiClient() {
+       mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
+        try {
+            dataSource.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         testTimer = new Timer();
 
@@ -129,18 +133,18 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         lngText = (TextView)findViewById(R.id.textViewLng);
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(Double.toString(boat1.getSpeed(1,time,dataSource)));
+        speedText.setText(Double.toString(boat1.getSpeed(1, time, dataSource)));
         latText.setText(Double.toString(boat1.getPos().latitude));
         lngText.setText(Double.toString(boat1.getPos().longitude));
     }
 
     private void updateBoatPos(){
-        boat1.setPos(pampus.getPos().latitude - Math.cos(((double)time)/10)/100, pampus.getPos().longitude + Math.sin(((double)time)/10)/100);
+        boat1.setPos(pampus.getPos().latitude - Math.cos(((double) time) / 10) / 100, pampus.getPos().longitude + Math.sin(((double) time) / 10) / 100);
         Boat1Marker.setPosition(boat1.getPos());
     }
 
     private void updateDatabase(){
-        dataSource.createPosition(time,boat1.getPos().latitude,boat1.getPos().longitude);
+        dataSource.createPosition(time, boat1.getPos().latitude, boat1.getPos().longitude);
     }
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -173,15 +177,20 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     @Override
     protected void onStart() {
         super.onStart();
-//        mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        if (mGoogleApiClient.isConnected()) {
-//            mGoogleApiClient.disconnect();
-//        }
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onPause(){
+        dataSource.close();
     }
 
     /**
@@ -193,15 +202,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
-//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//        if (mLastLocation != null) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
 //            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
 //            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-//        } else {
-//           Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
-//        }
-//
-//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        } else {
+           Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
+        }
+
 
     }
 
@@ -209,7 +219,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     public void onConnectionFailed(ConnectionResult result) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
-        //Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
 
@@ -217,8 +227,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason. We call connect() to
         // attempt to re-establish the connection.
-       // Log.i(TAG, "Connection suspended");
-//        mGoogleApiClient.connect();
+        Log.i(TAG, "Connection suspended");
+        mGoogleApiClient.connect();
     }
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we

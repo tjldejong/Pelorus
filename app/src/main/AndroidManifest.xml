@@ -24,7 +24,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <meta-data
@@ -35,28 +35,41 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".ActivityDashboard"
             android:label="@string/title_activity_maps" >
         </activity>
         <activity
-            android:name=".MainMenu"
+            android:name=".ActivityMainMenu"
             android:label="@string/title_activity_main_menu" >
-        </activity>
-        <activity
-            android:name=".LoginActivity"
-            android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".CreateEventActivity"
+            android:name=".ActivityLogin"
+            android:label="@string/title_activity_login"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+        </activity>
+        <activity
+            android:name=".ActivityCreateEvent"
             android:label="@string/title_activity_create_event" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.pelorusbv.pelorus.MainMenu" />
+                android:value=".ActivityMainMenu" />
+        </activity>
+        <activity
+            android:name=".ActivityCreateBoat"
+            android:label="@string/title_activity_create_boat"
+            android:parentActivityName=".ActivityMainMenu" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ActivityMainMenu" />
+        </activity>
+        <activity
+            android:name=".ActivityJoinEvent"
+            android:label="@string/title_activity_activity_join_event" >
         </activity>
     </application>
 

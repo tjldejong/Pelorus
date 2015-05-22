@@ -5,7 +5,7 @@
     android:orientation="vertical" >
     <fragment
         android:id="@+id/fragmentDisplay"
-        android:name="com.example.pelorusbv.pelorus.DisplayFragment"
+        android:name="com.example.pelorusbv.pelorus.FragmentDisplay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         />

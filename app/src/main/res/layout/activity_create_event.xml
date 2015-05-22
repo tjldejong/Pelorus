@@ -6,10 +6,10 @@
     <fragment
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/fragmentCreateEvent"
-        android:name="com.example.pelorusbv.pelorus.InsertCourseFragment"
+        android:name="com.example.pelorusbv.pelorus.FragmentInsertCourse"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context="com.example.pelorusbv.pelorus.InsertCourseFragment"
+        tools:context="com.example.pelorusbv.pelorus.FragmentInsertCourse"
         />
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -18,7 +18,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.pelorusbv.pelorus.CreateEventActivity"
+        tools:context="com.example.pelorusbv.pelorus.ActivityCreateEvent"
         map:cameraBearing="0"
         map:cameraTargetLat="52.365319"
         map:cameraTargetLng="5.069827"

@@ -5,7 +5,7 @@ import com.google.android.gms.maps.model.LatLng;
 /**
  * Created by Menso on 16-2-2015.
  */
-public class Buoy extends MapsActivity {
+public class Buoy extends ActivityDashboard {
 
     public LatLng buoyPos;
 
