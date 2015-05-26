@@ -18,7 +18,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.pelorusbv.pelorus.ActivityCreateEvent"
+        tools:context="com.example.pelorusbv.pelorus.ActivityCreateCourse"
         map:cameraBearing="0"
         map:cameraTargetLat="52.365319"
         map:cameraTargetLng="5.069827"

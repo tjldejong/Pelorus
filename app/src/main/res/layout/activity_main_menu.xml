@@ -8,7 +8,7 @@
 
     <TextView android:text="@string/app_name" android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
+        android:id="@+id/textViewWelkom"
         android:layout_centerHorizontal="true" />
 
     <Button
@@ -18,7 +18,7 @@
         android:text="@string/joinEvent"
         android:layout_marginTop="60dp"
         android:onClick="OnClickJoinEventList"
-        android:layout_below="@+id/textView"
+        android:layout_below="@+id/textViewWelkom"
         android:layout_centerHorizontal="true" />
 
     <Button

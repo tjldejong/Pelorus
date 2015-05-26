@@ -1,5 +1,7 @@
 package com.example.pelorusbv.pelorus;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,7 +12,7 @@ import android.widget.EditText;
 import java.sql.SQLException;
 
 
-public class ActivityCreateBoat extends ActionBarActivity {
+public class ActivityCreateBoat extends Activity {
     DataSourceBoat dataSourceBoat;
 
     @Override
@@ -19,10 +21,6 @@ public class ActivityCreateBoat extends ActionBarActivity {
         setContentView(R.layout.activity_create_boat);
 
         dataSourceBoat = new DataSourceBoat(this);
-    }
-
-    @Override
-    protected void onResume(){
         try {
             dataSourceBoat.open();
         } catch (SQLException e) {
@@ -54,6 +52,24 @@ public class ActivityCreateBoat extends ActionBarActivity {
 
     public void OnClickCreateBoat(View view) {
         EditText editTextBoatName = (EditText) findViewById(R.id.editTextBoatName);
-        dataSourceBoat.CreateBoat(editTextBoatName.toString());
+        dataSourceBoat.CreateBoat(editTextBoatName.getText().toString());
+        Intent intent = new Intent(this, ActivityMainMenu.class);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dataSourceBoat.close();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        try {
+            dataSourceBoat.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -39,8 +39,8 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
     private Buoy mark3;
     private Buoy pampus;
 
-    Timer testTimer;
-    TimerTask testTimerTask;
+    Timer sailingTimer;
+    TimerTask sailingTimerTask;
 
     int time;
     /**
@@ -104,9 +104,9 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
             e.printStackTrace();
         }
 
-        testTimer = new Timer();
+        sailingTimer = new Timer();
 
-        testTimerTask = new TimerTask() {
+        sailingTimerTask = new TimerTask() {
             @Override
             public void run(){
                 runOnUiThread(new Runnable() {
@@ -123,7 +123,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
             }
         };
 
-        testTimer.scheduleAtFixedRate(testTimerTask,1000,1000);
+        sailingTimer.scheduleAtFixedRate(sailingTimerTask,1000,1000);
     }
 
     private void updateDisplay(){
@@ -190,7 +190,9 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
 
     @Override
     protected void onPause(){
+        super.onPause();
         dataSource.close();
+        sailingTimer.cancel();
     }
 
     /**

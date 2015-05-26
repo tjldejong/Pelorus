@@ -2,6 +2,7 @@ package com.example.pelorusbv.pelorus;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.sql.SQLException;
@@ -12,7 +13,7 @@ import java.sql.SQLException;
 public class DataSourceUsers {
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
-    //private String[] latColumns = {TablePositions.COLUMN_POSLAT, TablePositions.COLUMN_TIME};
+    private String[] emailColumn = {TableUsers.COLUMN_ID,TableUsers.COLUMN_EMAIL};
     //private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
 
 
@@ -28,10 +29,20 @@ public class DataSourceUsers {
         dbHelper.close();
     }
 
-    public void CreateUser(String name, String password){
+    public long CreateUser(String name, String password){
         ContentValues values = new ContentValues();
         values.put(TableUsers.COLUMN_EMAIL, name);
         values.put(TableUsers.COLUMN_PASSWORD, password);
-        database.insert(TableUsers.TABLE_USERS, null, values);
+        long userID = database.insert(TableUsers.TABLE_USERS, null, values);
+        return userID;
+    }
+
+    public String getEmail(long ID){
+        String id = Long.toString(ID);
+        Cursor cursor = database.query(TableUsers.TABLE_USERS,emailColumn,TableUsers.COLUMN_ID + " = " + id,null,null,null,null);
+        cursor.moveToFirst();
+        String email = cursor.getString(1);
+        cursor.close();
+        return email;
     }
 }

@@ -1,20 +1,38 @@
 package com.example.pelorusbv.pelorus;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+
+import java.sql.SQLException;
 
 
-public class ActivityMainMenu extends ActionBarActivity {
+public class ActivityMainMenu extends Activity {
 
+    DataSourceUsers dataSourceUsers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
+
+        dataSourceUsers = new DataSourceUsers(this);
+        try {
+            dataSourceUsers.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        long id = User.getInstance().getID();
+
+        String email = dataSourceUsers.getEmail(id);
+
+        TextView TextViewWelkom = (TextView)findViewById(R.id.textViewWelkom);
+        TextViewWelkom.setText("welkom bij Pelorus " + email);
     }
 
 
@@ -41,7 +59,12 @@ public class ActivityMainMenu extends ActionBarActivity {
     }
 
     public void OnClickJoinEventList(View view){
-        Intent intent = new Intent(this, ActivityDashboard.class);
+        Intent intent = new Intent(this, ActivityJoinEvent.class);
+        startActivity(intent);
+    }
+
+    public  void OnClickJoinBoat(View view){
+        Intent intent = new Intent(this, ActivityJoinBoat.class);
         startActivity(intent);
     }
 
@@ -50,13 +73,13 @@ public class ActivityMainMenu extends ActionBarActivity {
         startActivity(intent);
     }
 
-    public void onFragmentInteraction(Uri uri){
-
-    }
-
-
     public void OnClickCreateBoat(View view) {
         Intent intent = new Intent(this, ActivityCreateBoat.class);
         startActivity(intent);
     }
+
+    public void onFragmentInteraction(Uri uri){
+
+    }
+
 }

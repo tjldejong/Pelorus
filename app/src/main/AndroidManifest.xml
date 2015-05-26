@@ -41,6 +41,11 @@
         <activity
             android:name=".ActivityMainMenu"
             android:label="@string/title_activity_main_menu" >
+        </activity>
+        <activity
+            android:name=".ActivityLogin"
+            android:label="@string/title_activity_login"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -48,12 +53,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ActivityLogin"
-            android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
-        </activity>
-        <activity
-            android:name=".ActivityCreateEvent"
+            android:name=".ActivityCreateCourse"
             android:label="@string/title_activity_create_event" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -70,6 +70,14 @@
         <activity
             android:name=".ActivityJoinEvent"
             android:label="@string/title_activity_activity_join_event" >
+        </activity>
+        <activity
+            android:name=".ActivityJoinBoat"
+            android:label="@string/title_activity_activity_join_boat" >
+        </activity>
+        <activity
+            android:name=".ActivityCreateEvent"
+            android:label="@string/title_activity_activity_create_event" >
         </activity>
     </application>
 

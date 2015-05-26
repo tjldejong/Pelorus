@@ -1,93 +1,124 @@
 package com.example.pelorusbv.pelorus;
 
-import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
+import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
+import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.SphericalUtil;
+import com.google.android.gms.fitness.data.DataSource;
 
-public class ActivityCreateEvent extends FragmentActivity implements FragmentInsertCourse.OnFragmentInteractionListener {
+import java.sql.SQLException;
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
-    Buoy Buoy1;
-    Buoy Buoy2;
-    Buoy Buoy3;
-    Buoy Buoy4;
+public class ActivityCreateEvent extends Activity {
 
-    SphericalUtil SpUtl;
+    DataSourceEvents dataSourceEvents;
+    DataSourceCourses dataSourceCourses;
+    DataSourceHasCourse dataSourceHasCourse;
+
+    SimpleCursorAdapter dataAdapter;
+
+    ListView listViewCourseList;
+
+    long IDclickedCourse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_event);
-        setUpMapIfNeeded();
+        setContentView(R.layout.activity_activity_create_event);
+
+        listViewCourseList = (ListView)findViewById(android.R.id.list);
+
+        dataSourceEvents = new DataSourceEvents(this);
+        dataSourceCourses = new DataSourceCourses(this);
+        dataSourceHasCourse = new DataSourceHasCourse(this);
+        //dataSourceHasCourse = new DataSourceHasCourse(this);
+
+        try {
+            dataSourceEvents.open();
+            dataSourceCourses.open();
+            dataSourceHasCourse.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        Cursor cursor = dataSourceCourses.getCoursesList();
+        startManagingCursor(cursor);
+
+        dataAdapter  = new SimpleCursorAdapter(
+                this,
+                R.layout.event_info,
+                cursor,
+                new String[]{TableEvent.COLUMN_NAME},
+                new int[]{R.id.textViewEvent}
+        );
+        listViewCourseList.setAdapter(dataAdapter);
+        listViewCourseList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                IDclickedCourse = id;
+            }
+        });
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_activity_create_event, menu);
+        return true;
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
-     * <p/>
-     * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
-     * install/update the Google Play services APK on their device.
-     * <p/>
-     * A user can return to this FragmentActivity after following the prompt and correctly
-     * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
-     * have been completely destroyed during this process (it is likely that it would only be
-     * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
-     * method in {@link #onResume()} to guarantee that it will be called.
-     */
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
-            }
+    public void OnClickCreateEvent(View view) {
+        EditText editTextEvent = (EditText)findViewById(R.id.editTextName);
+        dataSourceEvents.CreateEvent(editTextEvent.getText().toString(), IDclickedCourse);
+        Intent intent = new Intent(this, ActivityMainMenu.class);
+        startActivity(intent);
+    }
+
+
+    public void OnClickCreateCourse(View view) {
+        Intent intent = new Intent(this, ActivityCreateCourse.class);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dataSourceEvents.close();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        try {
+            dataSourceEvents.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
-
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
-     */
-    private void setUpMap() {
-
-    }
-
-    public void onFragmentInteraction(Uri uri){
-
-    }
-
-    public void onCreateCourse(double lat, double lng, double wind){
-        Buoy1 = new Buoy(lat,lng);
-        Buoy2 = new Buoy(SpUtl.computeOffset(Buoy1.getPos(), 500, wind-90));
-        Buoy3 = new Buoy(SpUtl.computeOffset(Buoy1.getPos(), 2*1852, wind));
-        Buoy4 = new Buoy(SpUtl.computeOffset(Buoy1.getPos(), 2*1852, wind-180));
-
-        mMap.addMarker(new MarkerOptions().position(Buoy1.getPos()));
-        mMap.addMarker(new MarkerOptions().position(Buoy2.getPos()));
-        mMap.addMarker(new MarkerOptions().position(Buoy3.getPos()));
-        mMap.addMarker(new MarkerOptions().position(Buoy4.getPos()));
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLng((Buoy1.getPos())));
-    }
-
 }

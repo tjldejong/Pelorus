@@ -10,19 +10,22 @@ public class TableEvent {
     public static final String TABLE_EVENTS = "events";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_COURSEID = "courseid";
+
 
 
 
     // Database creation SQL statement
-    private static final String CREATE_TABLE_BOATS = "create table "
+    private static final String CREATE_TABLE_EVENTS = "create table "
             + TABLE_EVENTS
             + " ( "
             + COLUMN_ID + " integer primary key autoincrement,"
-            + COLUMN_NAME + " text not null);";
+            + COLUMN_NAME + " text not null,"
+            + COLUMN_COURSEID + " integer not null);";
 
 
     public static void onCreate(SQLiteDatabase database) {
-        database.execSQL(CREATE_TABLE_BOATS);
+        database.execSQL(CREATE_TABLE_EVENTS);
     }
 
     public static void onUpgrade(SQLiteDatabase database, int oldVersion,

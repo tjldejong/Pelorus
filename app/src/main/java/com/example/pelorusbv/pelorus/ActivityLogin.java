@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private static final String[] DUMMY_CREDENTIALS = new String[]{
             "foo@example.com:hello", "bar@example.com:world","a@b.nl:aaaaa"
     };
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -55,6 +57,8 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private View mProgressView;
     private View mLoginFormView;
     private Intent intent;
+
+    private DataSourceUsers dataSourceUsers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +93,13 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        dataSourceUsers = new DataSourceUsers(this);
+        try {
+            dataSourceUsers.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void populateAutoComplete() {
@@ -151,6 +162,7 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
         return email.contains("@");
+
     }
 
     private boolean isPasswordValid(String password) {
@@ -247,7 +259,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
 
         mEmailView.setAdapter(adapter);
     }
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -257,37 +268,41 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
         private final String mEmail;
         private final String mPassword;
 
-        private DataSourceUsers dataSourceUsers;
+
 
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
+
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+            long id  = dataSourceUsers.CreateUser(mEmail,mPassword);
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
+            User.getInstance().setID(id);
+            dataSourceUsers.close();
+            return true;
+//            try {
+//                // Simulate network access.
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                return false;
+//            }
+//
+//            for (String credential : DUMMY_CREDENTIALS) {
+//                String[] pieces = credential.split(":");
+//                if (pieces[0].equals(mEmail)) {
+//                    // Account exists, return true if the password matches.
+//                    return pieces[1].equals(mPassword);
+//                }
+//            }
 
             // TODO: register the new account here.
 
-            dataSourceUsers.CreateUser(mEmail,mPassword);
 
-            return true;
+
         }
 
         @Override
