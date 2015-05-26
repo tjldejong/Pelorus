@@ -16,8 +16,7 @@
         android:id="@+id/android:list"
         android:layout_gravity="center_horizontal"
         android:layout_weight="4"
-        android:clickable="true"
-        android:background="@drawable/bg_key"/>
+        android:listSelector="@drawable/bg_key"/>
 
     <Button
         android:layout_width="wrap_content"

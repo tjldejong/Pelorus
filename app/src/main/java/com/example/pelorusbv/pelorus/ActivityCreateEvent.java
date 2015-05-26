@@ -56,15 +56,16 @@ public class ActivityCreateEvent extends Activity {
 
         dataAdapter  = new SimpleCursorAdapter(
                 this,
-                R.layout.event_info,
+                R.layout.course_info,
                 cursor,
-                new String[]{TableEvent.COLUMN_NAME},
-                new int[]{R.id.textViewEvent}
+                new String[]{TableCourses.COLUMN_NAME},
+                new int[]{R.id.textViewCourse}
         );
         listViewCourseList.setAdapter(dataAdapter);
         listViewCourseList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                view.setSelected(true);
                 IDclickedCourse = id;
             }
         });

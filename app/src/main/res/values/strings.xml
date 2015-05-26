@@ -22,5 +22,6 @@
     <string name="title_activity_activity_join_boat">ActivityJoinBoat</string>
     <string name="title_activity_activity_pick_boat">ActivityPickBoat</string>
     <string name="title_activity_activity_create_event">ActivityCreateEvent</string>
+    <string name="speedLbl">Speed</string>
 
 </resources>

@@ -55,6 +55,7 @@ public class ActivityJoinBoat extends ListActivity {
         listViewBoatList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                view.setSelected(true);
                 IDclickedBoat = id;
             }
         });

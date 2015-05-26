@@ -25,7 +25,7 @@
         android:id="@+id/listViewEventList"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.6"
-        android:background="@drawable/bg_key"/>
+        android:listSelector="@drawable/bg_key"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
         android:id="@+id/listViewBoatList"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.15"
-        android:background="@drawable/bg_key"/>
+        android:listSelector="@drawable/bg_key"/>
 
     <Button
         android:layout_width="wrap_content"

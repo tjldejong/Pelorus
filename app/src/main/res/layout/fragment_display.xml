@@ -60,7 +60,7 @@
                 />
             <TextView
                 android:id="@+id/textViewSpeedLbl"
-                android:text="Speed"
+                android:text="@string/speedLbl"
                 android:layout_weight="1"
                 />
         </TableRow>

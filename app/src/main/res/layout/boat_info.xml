@@ -9,5 +9,6 @@
         android:text="New Text"
         android:id="@+id/textViewBoat"
         android:textSize="21sp"
+        android:background="@drawable/bg_key"
         />
 </RelativeLayout>
