@@ -13,8 +13,8 @@ import java.sql.SQLException;
 public class DataSourceEvents {
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
-    private String[] eventColumns = {TableEvent.COLUMN_ID, TableEvent.COLUMN_NAME};
-    //private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
+    private String[] eventColumns = {TableEvent.COLUMN_ID, TableEvent.COLUMN_NAME,TableEvent.COLUMN_COURSEID};
+    private String[] courseColumns = {TableEvent.COLUMN_ID, TableEvent.COLUMN_COURSEID};
 
 
     public DataSourceEvents(Context context) {
@@ -37,7 +37,15 @@ public class DataSourceEvents {
     }
 
     public Cursor getEvents(){
-        Cursor cursor = database.query(TableEvent.TABLE_EVENTS,eventColumns,null,null,null,null,null);
-        return cursor;
+        return database.query(TableEvent.TABLE_EVENTS, eventColumns, null, null, null, null, null);
+    }
+
+    public long getCourseID(long eventID){
+        Cursor cursorCourse = database.query(TableEvent.TABLE_EVENTS,eventColumns,null,null,null,null,null);
+        //TableEvent.COLUMN_ID + " = " + Long.toString(eventID)
+        cursorCourse.moveToFirst();
+        long id = cursorCourse.getLong(1);
+        cursorCourse.close();
+        return id;
     }
 }

@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -59,12 +60,15 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private Intent intent;
 
     private DataSourceUsers dataSourceUsers;
+    private User activeUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         intent = new Intent(this, ActivityMainMenu.class);
+
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -87,7 +91,7 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
             @Override
             public void onClick(View view) {
                 attemptLogin();
-                startActivity(intent);
+
             }
         });
 
@@ -100,6 +104,8 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        activeUser = new User();
     }
 
     private void populateAutoComplete() {
@@ -283,6 +289,10 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
 
             User.getInstance().setID(id);
             dataSourceUsers.close();
+
+            Log.w("error:","Ik kom hier");
+            startActivity(intent);
+
             return true;
 //            try {
 //                // Simulate network access.

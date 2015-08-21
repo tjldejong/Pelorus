@@ -1,5 +1,6 @@
 package com.example.pelorusbv.pelorus;
 
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
     private Buoy mark1;
     private Buoy mark2;
     private Buoy mark3;
+    private Buoy mark4;
     private Buoy pampus;
 
     Timer sailingTimer;
@@ -59,22 +61,45 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
 
     Marker Boat1Marker;
 
-    DataSourcePositions dataSource;
+    DataSourcePositions dataSourcePositions;
+    DataSourceCourses dataSourceCourses;
+    DataSourceEvents dataSourceEvents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         time = 0;
 
-        dataSource = new DataSourcePositions(this);
+        dataSourcePositions = new DataSourcePositions(this);
+        dataSourceCourses = new DataSourceCourses(this);
+        dataSourceEvents = new DataSourceEvents(this);
+
+
+        long eventId = Event.getInstance().getID();
+        Log.w("eventid:", Long.toString(eventId));
+
+
+//        Cursor cursor = dataSourceEvents.getEvents();
+//        cursor.moveToFirst();
+//        Long courseId = cursor.getLong(2);
+//        cursor.close();
+//        long courseId = dataSourceEvents.getCourseID(eventId);
+        double[] buoyArray = dataSourceCourses.getBuoyPositions(1);
 
         boat1 = new Boat((52.365319), 5.069827);
 
-        mark1 = new Buoy(52.365319, (5.069827+0.01));
-        mark2 = new Buoy((52.365319+0.01), 5.069827);
-        mark3 = new Buoy(52.365319, (5.069827-0.01));
+        mark1 = new Buoy(buoyArray[1], buoyArray[2]);
+        mark2 = new Buoy(buoyArray[3], buoyArray[4]);
+        mark3 = new Buoy(buoyArray[5], buoyArray[6]);
+        mark4 = new Buoy(buoyArray[7], buoyArray[8]);
+
+//        mark1 = new Buoy(52.365319, (5.069827+0.01));
+//        mark2 = new Buoy((52.365319+0.01), 5.069827);
+//        mark3 = new Buoy(52.365319, (5.069827-0.01));
 
         pampus = new Buoy(52.365319, 5.069827);
+
+
 
         buildGoogleApiClient();
 
@@ -99,7 +124,9 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         setUpMapIfNeeded();
 
         try {
-            dataSource.open();
+            dataSourcePositions.open();
+            dataSourceCourses.open();
+            dataSourceEvents.open();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -133,7 +160,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         lngText = (TextView)findViewById(R.id.textViewLng);
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(Double.toString(boat1.getSpeed(1, time, dataSource)));
+        speedText.setText(Double.toString(boat1.getSpeed(1, time, dataSourcePositions)));
         latText.setText(Double.toString(boat1.getPos().latitude));
         lngText.setText(Double.toString(boat1.getPos().longitude));
     }
@@ -144,7 +171,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
     }
 
     private void updateDatabase(){
-        dataSource.createPosition(time, boat1.getPos().latitude, boat1.getPos().longitude);
+        dataSourcePositions.createPosition(time, boat1.getPos().latitude, boat1.getPos().longitude);
     }
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -191,7 +218,9 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
     @Override
     protected void onPause(){
         super.onPause();
-        dataSource.close();
+        dataSourcePositions.close();
+        dataSourceCourses.close();
+        dataSourceEvents.close();
         sailingTimer.cancel();
     }
 
@@ -207,7 +236,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
+           // mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
 //            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
 //            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
@@ -243,6 +272,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         mMap.addMarker(new MarkerOptions().position(mark1.getPos()).title("mark1"));
         mMap.addMarker(new MarkerOptions().position(mark2.getPos()).title("mark2"));
         mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));
+        mMap.addMarker(new MarkerOptions().position(mark4.getPos()).title("mark4"));
         mMap.addMarker(new MarkerOptions().position(pampus.getPos()).title("Pampus"));
 
     }

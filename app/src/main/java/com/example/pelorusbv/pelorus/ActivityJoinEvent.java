@@ -30,10 +30,17 @@ public class ActivityJoinEvent extends Activity {
     private long IDclickedBoat;
     private long IDclickedEvent;
 
+    Cursor cursorEvent;
+    Cursor cursorBoat;
+
+    Event activeEvent;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_activity_join_event);
+
+        activeEvent = new Event();
 
         listViewEventList = (ListView)findViewById(R.id.listViewEventList);
         listViewBoatList = (ListView)findViewById(R.id.listViewBoatList);
@@ -50,8 +57,8 @@ public class ActivityJoinEvent extends Activity {
             e.printStackTrace();
         }
 
-        Cursor cursorEvent = dataSourceEvents.getEvents();
-        Cursor cursorBoat = dataSourceBoat.getBoatUserCrews(User.getInstance().getID());
+        cursorEvent = dataSourceEvents.getEvents();
+        cursorBoat = dataSourceBoat.getBoatUserCrews(User.getInstance().getID());
         startManagingCursor(cursorEvent);
         startManagingCursor(cursorBoat);
 
@@ -67,7 +74,7 @@ public class ActivityJoinEvent extends Activity {
                 this,
                 R.layout.event_info,
                 cursorEvent,
-                new String[]{TableEvent.COLUMN_NAME},
+                new String[]{TableEvent.COLUMN_COURSEID,TableEvent.COLUMN_NAME},
                 new int[]{R.id.textViewEvent}
         );
 
@@ -90,6 +97,8 @@ public class ActivityJoinEvent extends Activity {
 
 
 
+
+
     }
 
     @Override
@@ -98,6 +107,8 @@ public class ActivityJoinEvent extends Activity {
         dataSourceBoat.close();
         dataSourceCrews.close();
         dataSourceEvents.close();
+        cursorEvent.close();
+        cursorBoat.close();
     }
 
     @Override
@@ -137,6 +148,7 @@ public class ActivityJoinEvent extends Activity {
 
     public void OnClickJoinEvent(View view) {
         Intent intent = new Intent(this, ActivityDashboard.class);
+        Event.getInstance().setID(IDclickedEvent);
         startActivity(intent);
     }
 }

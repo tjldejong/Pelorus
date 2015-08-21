@@ -14,7 +14,7 @@ public class DataSourceCourses {
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     private String[] coursesColumns = {TableCourses.COLUMN_ID,TableCourses.COLUMN_NAME};
-    //private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
+    private String[] buoyColumns = {TableCourses.COLUMN_ID, TableCourses.COLUMN_BUOY1LAT,TableCourses.COLUMN_BUOY1LNG,TableCourses.COLUMN_BUOY2LAT,TableCourses.COLUMN_BUOY2LNG,TableCourses.COLUMN_BUOY3LAT,TableCourses.COLUMN_BUOY3LNG,TableCourses.COLUMN_BUOY4LAT,TableCourses.COLUMN_BUOY4LNG};
 
 
     public DataSourceCourses(Context context) {
@@ -47,5 +47,16 @@ public class DataSourceCourses {
         Cursor cursor = database.query(TableCourses.TABLE_COURSES,coursesColumns,null,null,null,null,null);
         return cursor;
     }
+
+    public double[] getBuoyPositions(long courseID){
+        Cursor cursor = database.query(TableCourses.TABLE_COURSES,buoyColumns,TableCourses.COLUMN_ID + " = " + Long.toString(courseID),null,null,null,null);
+        //
+        cursor.moveToFirst();
+        double[] buoyArray = {cursor.getDouble(1),cursor.getDouble(2),cursor.getDouble(3),cursor.getDouble(4),cursor.getDouble(5),cursor.getDouble(6),cursor.getDouble(7),cursor.getDouble(8)};
+        cursor.close();
+        return buoyArray;
+    }
+
+
 }
 

@@ -12,6 +12,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 
+import java.sql.SQLException;
+
 public class ActivityCreateCourse extends FragmentActivity implements FragmentInsertCourse.OnFragmentInteractionListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -28,13 +30,17 @@ public class ActivityCreateCourse extends FragmentActivity implements FragmentIn
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
         setUpMapIfNeeded();
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
     }
+
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
