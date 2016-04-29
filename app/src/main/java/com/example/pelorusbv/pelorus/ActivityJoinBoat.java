@@ -1,8 +1,11 @@
 package com.example.pelorusbv.pelorus;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -23,6 +26,8 @@ public class ActivityJoinBoat extends ListActivity {
 
     SimpleCursorAdapter dataAdapter;
     ListView listViewBoatList;
+    boolean BoatClicked;
+    Cursor cursorBoat;
     private long IDclickedBoat;
 
     @Override
@@ -33,38 +38,34 @@ public class ActivityJoinBoat extends ListActivity {
 
         dataSourceBoat = new DataSourceBoat(this);
         dataSourceCrews = new DataSourceCrews(this);
-
-        try {
-            dataSourceBoat.open();
-            dataSourceCrews.open();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        Cursor cursor = dataSourceBoat.getBoatList();
-        startManagingCursor(cursor);
-
-        dataAdapter  = new SimpleCursorAdapter(
-                this,
-                R.layout.boat_info,
-                cursor,
-                new String[]{TableBoat.COLUMN_NAME},
-                new int[]{R.id.textViewBoat}
-                );
-        listViewBoatList.setAdapter(dataAdapter);
-        listViewBoatList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                view.setSelected(true);
-                IDclickedBoat = id;
-            }
-        });
     }
 
-    public void OnClickJoinBoat(View view){
-        dataSourceCrews.CreateCrews(User.getInstance().getID(),IDclickedBoat);
-        Intent intent = new Intent(this, ActivityMainMenu.class);
-        startActivity(intent);
+    public void OnClickJoinBoat(View view) {
+        if (BoatClicked) {
+            SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+            long id = pref.getLong("userID", 0);
+            dataSourceCrews.CreateCrews(id, IDclickedBoat);
+            Intent intent = new Intent(this, ActivityMainMenu.class);
+            startActivity(intent);
+        } else {
+            // 1. Instantiate an AlertDialog.Builder with its constructor
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            // 2. Chain together various setter methods to set the dialog characteristics
+            builder.setMessage("Please select a boat")
+                    .setTitle("No boat selected")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked OK button
+                        }
+                    });
+
+            // 3. Get the AlertDialog from create()
+            AlertDialog dialog = builder.create();
+
+            dialog.show();
+        }
+
     }
 
 
@@ -95,6 +96,8 @@ public class ActivityJoinBoat extends ListActivity {
         super.onPause();
         dataSourceBoat.close();
         dataSourceCrews.close();
+        stopManagingCursor(cursorBoat);
+        cursorBoat.close();
     }
 
     @Override
@@ -106,6 +109,27 @@ public class ActivityJoinBoat extends ListActivity {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        cursorBoat = dataSourceBoat.getBoatList();
+        startManagingCursor(cursorBoat);
+
+        dataAdapter = new SimpleCursorAdapter(
+                this,
+                R.layout.boat_info,
+                cursorBoat,
+                new String[]{TableBoat.COLUMN_NAME},
+                new int[]{R.id.textViewBoat}
+        );
+
+        BoatClicked = false;
+        listViewBoatList.setAdapter(dataAdapter);
+        listViewBoatList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                view.setSelected(true);
+                IDclickedBoat = id;
+                BoatClicked = true;
+            }
+        });
     }
 
 

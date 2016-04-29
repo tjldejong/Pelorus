@@ -12,13 +12,12 @@
         tools:context="com.example.pelorusbv.pelorus.FragmentInsertCourse"
         />
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         xmlns:map="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/map"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/mapCreateCourse"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.pelorusbv.pelorus.ActivityCreateCourse"
         map:cameraBearing="0"
         map:cameraTargetLat="52.365319"
         map:cameraTargetLng="5.069827"
@@ -30,5 +29,6 @@
         map:uiScrollGestures="true"
         map:uiTiltGestures="true"
         map:uiZoomControls="true"
-        map:uiZoomGestures="true"/>
+        map:uiZoomGestures="true"
+        tools:context="com.example.pelorusbv.pelorus.ActivityCreateCourse" />
 </LinearLayout>

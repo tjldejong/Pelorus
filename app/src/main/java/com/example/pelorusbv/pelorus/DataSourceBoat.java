@@ -2,8 +2,11 @@ package com.example.pelorusbv.pelorus;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 import android.widget.SimpleCursorAdapter;
 
 import java.sql.SQLException;
@@ -38,6 +41,15 @@ public class DataSourceBoat {
     }
 
     public Cursor getBoatList(){
+//        new CursorLoader(
+//                ActivityCreateEvent.getActivity(),   // Parent activity context
+//                TableBoat.TABLE_BOATS,        // Table to query
+//                boatColumns,     // Projection to return
+//                null,            // No selection clause
+//                null,            // No selection arguments
+//                null             // Default sort order
+//        );
+
         Cursor cursor = database.query(TableBoat.TABLE_BOATS,boatColumns,null,null,null,null,null);
         return cursor;
     }

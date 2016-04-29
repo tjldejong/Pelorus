@@ -52,9 +52,12 @@ public class ActivityCreateBoat extends Activity {
 
     public void OnClickCreateBoat(View view) {
         EditText editTextBoatName = (EditText) findViewById(R.id.editTextBoatName);
-        dataSourceBoat.CreateBoat(editTextBoatName.getText().toString());
-        Intent intent = new Intent(this, ActivityMainMenu.class);
-        startActivity(intent);
+        if (editTextBoatName.length() != 0) {
+            dataSourceBoat.CreateBoat(editTextBoatName.getText().toString());
+            Intent intent = new Intent(this, ActivityMainMenu.class);
+            startActivity(intent);
+        } else
+            editTextBoatName.setError("Give the boat a name");
     }
 
     @Override

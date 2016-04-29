@@ -12,12 +12,11 @@ import java.sql.SQLException;
  */
 public class DataSourcePositions {
 
+    double newPoslat;
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     private String[] latColumns = {TablePositions.COLUMN_POSLAT, TablePositions.COLUMN_TIME};
     private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
-
-    double newPoslat;
 
     public DataSourcePositions(Context context) {
         dbHelper = new MySQLiteHelper(context);
@@ -56,5 +55,9 @@ public class DataSourcePositions {
         newPoslat = cursor.getDouble(0);
         cursor.close();
         return newPoslat;
+    }
+
+    public void deletePositions() {
+        database.delete(TablePositions.TABLE_POSITIONS, null, null);
     }
 }

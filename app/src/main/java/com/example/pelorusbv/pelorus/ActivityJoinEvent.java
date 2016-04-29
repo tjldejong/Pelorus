@@ -1,8 +1,15 @@
 package com.example.pelorusbv.pelorus;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -15,7 +22,7 @@ import android.widget.SimpleCursorAdapter;
 import java.sql.SQLException;
 
 
-public class ActivityJoinEvent extends Activity {
+public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     DataSourceBoat dataSourceBoat;
     DataSourceCrews dataSourceCrews;
@@ -26,14 +33,13 @@ public class ActivityJoinEvent extends Activity {
 
     ListView listViewEventList;
     ListView listViewBoatList;
-
-    private long IDclickedBoat;
-    private long IDclickedEvent;
-
+    boolean BoatClicked;
+    boolean EventClicked;
     Cursor cursorEvent;
     Cursor cursorBoat;
-
     Event activeEvent;
+    private long IDclickedBoat;
+    private long IDclickedEvent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +54,23 @@ public class ActivityJoinEvent extends Activity {
         dataSourceBoat = new DataSourceBoat(this);
         dataSourceCrews = new DataSourceCrews(this);
         dataSourceEvents = new DataSourceEvents(this);
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dataSourceBoat.close();
+        dataSourceCrews.close();
+        dataSourceEvents.close();
+        stopManagingCursor(cursorEvent);
+        stopManagingCursor(cursorBoat);
+        cursorEvent.close();
+        cursorBoat.close();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         try {
             dataSourceBoat.open();
             dataSourceCrews.open();
@@ -57,8 +79,11 @@ public class ActivityJoinEvent extends Activity {
             e.printStackTrace();
         }
 
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        long id = pref.getLong("userID", 0);
+
         cursorEvent = dataSourceEvents.getEvents();
-        cursorBoat = dataSourceBoat.getBoatUserCrews(User.getInstance().getID());
+        cursorBoat = dataSourceBoat.getBoatUserCrews(id);
         startManagingCursor(cursorEvent);
         startManagingCursor(cursorBoat);
 
@@ -70,14 +95,17 @@ public class ActivityJoinEvent extends Activity {
                 new int[]{R.id.textViewBoat}
         );
 
+
         dataAdapterEvent = new SimpleCursorAdapter(
                 this,
                 R.layout.event_info,
                 cursorEvent,
-                new String[]{TableEvent.COLUMN_COURSEID,TableEvent.COLUMN_NAME},
-                new int[]{R.id.textViewEvent}
+                new String[]{TableEvent.COLUMN_NAME},
+                new int[]{R.id.textViewEventName}
         );
 
+        BoatClicked = false;
+        EventClicked = false;
         listViewBoatList.setAdapter(dataAdapterBoat);
         listViewEventList.setAdapter(dataAdapterEvent);
         listViewBoatList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -85,6 +113,7 @@ public class ActivityJoinEvent extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 IDclickedBoat = id;
                 view.setSelected(true);
+                BoatClicked = true;
             }
         });
         listViewEventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -92,35 +121,9 @@ public class ActivityJoinEvent extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 IDclickedEvent = id;
                 view.setSelected(true);
+                EventClicked = true;
             }
         });
-
-
-
-
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        dataSourceBoat.close();
-        dataSourceCrews.close();
-        dataSourceEvents.close();
-        cursorEvent.close();
-        cursorBoat.close();
-    }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-        try {
-            dataSourceBoat.open();
-            dataSourceCrews.open();
-            dataSourceEvents.open();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
 
@@ -147,8 +150,55 @@ public class ActivityJoinEvent extends Activity {
     }
 
     public void OnClickJoinEvent(View view) {
-        Intent intent = new Intent(this, ActivityDashboard.class);
-        Event.getInstance().setID(IDclickedEvent);
-        startActivity(intent);
+        if (EventClicked && BoatClicked) {
+            Intent intent = new Intent(this, ActivityDashboard.class);
+            Event.getInstance().setID(IDclickedEvent);
+            startActivity(intent);
+        } else if (!EventClicked) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Please select an event")
+                    .setTitle("No event selected")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked OK button
+                        }
+                    });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else if (!BoatClicked) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Please select a boat")
+                    .setTitle("No boat selected")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked OK button
+                        }
+                    });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
+
+    // Called when a new Loader needs to be created
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        // Now create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed.
+        Uri uri = DataSourceEvents.CONTENT_URI;
+        return new CursorLoader(this, uri, null, null, null, null);
+    }
+
+    /**
+     * A callback method, invoked after the requested content provider returned all the data
+     */
+    @Override
+    public void onLoadFinished(Loader<Cursor> arg0, Cursor arg1) {
+        dataAdapterEvent.swapCursor(arg1);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> arg0) {
+        dataAdapterEvent.swapCursor(null);
+    }
+
+
 }

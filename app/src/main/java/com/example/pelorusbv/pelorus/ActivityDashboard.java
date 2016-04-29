@@ -1,5 +1,6 @@
 package com.example.pelorusbv.pelorus;
 
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
@@ -9,12 +10,17 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -28,42 +34,40 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class ActivityDashboard extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener  {
+public class ActivityDashboard extends FragmentActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener {
 
     protected static final String TAG = "basic-location-sample";
+    /**
+     * Represents a geographical location.
+     */
+    protected Location mLastLocation;
+    Timer sailingTimer;
+    TimerTask sailingTimerTask;
+    int time;
+    LatLng myPos;
+    TextView speedText;
+    TextView timeText;
+    TextView latText;
+    TextView lngText;
+    Marker Boat1Marker;
+    Marker myBoatMarker;
+    DataSourcePositions dataSourcePositions;
+    DataSourceCourses dataSourceCourses;
+    DataSourceEvents dataSourceEvents;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private GoogleApiClient mGoogleApiClient;
+//
+//    protected TextView mLatitudeText;
+//    protected TextView mLongitudeText;
+private GoogleApiClient mGoogleApiClient;
     private Boat boat1;
+    private Boat myBoat;
     private Buoy Start;
     private Buoy mark1;
     private Buoy mark2;
     private Buoy mark3;
     private Buoy mark4;
     private Buoy pampus;
-
-    Timer sailingTimer;
-    TimerTask sailingTimerTask;
-
-    int time;
-    /**
-     * Represents a geographical location.
-     */
-    protected Location mLastLocation;
-    LatLng myPos;
-//
-//    protected TextView mLatitudeText;
-//    protected TextView mLongitudeText;
-
-    TextView speedText;
-    TextView timeText;
-    TextView latText;
-    TextView lngText;
-
-    Marker Boat1Marker;
-
-    DataSourcePositions dataSourcePositions;
-    DataSourceCourses dataSourceCourses;
-    DataSourceEvents dataSourceEvents;
+    private LocationRequest mLocationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +78,25 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         dataSourceCourses = new DataSourceCourses(this);
         dataSourceEvents = new DataSourceEvents(this);
 
-
         long eventId = Event.getInstance().getID();
         Log.w("eventid:", Long.toString(eventId));
+
+        try {
+            dataSourcePositions.open();
+            dataSourceCourses.open();
+            dataSourceEvents.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        dataSourcePositions.deletePositions();
+        dataSourcePositions.close();
+        dataSourcePositions = new DataSourcePositions(this);
+        try {
+            dataSourcePositions.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
 
 //        Cursor cursor = dataSourceEvents.getEvents();
@@ -87,11 +107,12 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         double[] buoyArray = dataSourceCourses.getBuoyPositions(1);
 
         boat1 = new Boat((52.365319), 5.069827);
+        myBoat = new Boat(52.365319, 5.069827);
 
-        mark1 = new Buoy(buoyArray[1], buoyArray[2]);
-        mark2 = new Buoy(buoyArray[3], buoyArray[4]);
-        mark3 = new Buoy(buoyArray[5], buoyArray[6]);
-        mark4 = new Buoy(buoyArray[7], buoyArray[8]);
+        mark1 = new Buoy(buoyArray[0], buoyArray[1]);
+        mark2 = new Buoy(buoyArray[2], buoyArray[3]);
+        mark3 = new Buoy(buoyArray[4], buoyArray[5]);
+        mark4 = new Buoy(buoyArray[6], buoyArray[7]);
 
 //        mark1 = new Buoy(52.365319, (5.069827+0.01));
 //        mark2 = new Buoy((52.365319+0.01), 5.069827);
@@ -106,6 +127,12 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
 
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1 * 1000)        // 1 seconds, in milliseconds
+
+                .setFastestInterval(500); // 0.5 second, in milliseconds
 
     }
 
@@ -151,6 +178,10 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         };
 
         sailingTimer.scheduleAtFixedRate(sailingTimerTask,1000,1000);
+
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
     }
 
     private void updateDisplay(){
@@ -160,18 +191,32 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         lngText = (TextView)findViewById(R.id.textViewLng);
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(Double.toString(boat1.getSpeed(1, time, dataSourcePositions)));
-        latText.setText(Double.toString(boat1.getPos().latitude));
-        lngText.setText(Double.toString(boat1.getPos().longitude));
+        speedText.setText(String.format("%.2f", myBoat.getSpeed(time, dataSourcePositions)));
+        latText.setText(String.format("%.4f", myBoat.getPos().latitude));
+        lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
     }
 
     private void updateBoatPos(){
-        boat1.setPos(pampus.getPos().latitude - Math.cos(((double) time) / 10) / 100, pampus.getPos().longitude + Math.sin(((double) time) / 10) / 100);
-        Boat1Marker.setPosition(boat1.getPos());
+//        boat1.setPos(pampus.getPos().latitude - Math.cos(((double) time) / 10) / 100, pampus.getPos().longitude + Math.sin(((double) time) / 10) / 100);
+//        Boat1Marker.setPosition(boat1.getPos());
+//        Boat1Marker.setRotation(boat1.getHeading(time,dataSourcePositions));
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
+            myBoatMarker.setPosition(myBoat.getPos());
+            myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions));
+//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+        } else {
+            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void updateDatabase(){
-        dataSourcePositions.createPosition(time, boat1.getPos().latitude, boat1.getPos().longitude);
+        dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude);
     }
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -222,6 +267,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         dataSourceCourses.close();
         dataSourceEvents.close();
         sailingTimer.cancel();
+        stopLocationUpdates();
     }
 
     /**
@@ -233,10 +279,19 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
+
+        startLocationUpdates();
+
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-           // mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
+            myBoat = new Boat(myPos.latitude, myPos.longitude);
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
+            myBoatMarker = mMap.addMarker(new MarkerOptions()
+                    .position(myBoat.getPos())
+                    .title("myBoat")
+                    .flat(true)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
 //            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
 //            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
@@ -268,7 +323,11 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        Boat1Marker = mMap.addMarker(new MarkerOptions().position(boat1.getPos()).title("boat1").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        Boat1Marker = mMap.addMarker(new MarkerOptions()
+                .position(boat1.getPos())
+                .title("boat1")
+                .flat(true)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
         mMap.addMarker(new MarkerOptions().position(mark1.getPos()).title("mark1"));
         mMap.addMarker(new MarkerOptions().position(mark2.getPos()).title("mark2"));
         mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));
@@ -292,4 +351,26 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
 
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void createLocationRequest() {
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
 }

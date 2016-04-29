@@ -8,6 +8,7 @@ import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -246,6 +247,16 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
 
     }
 
+    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
+        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(ActivityLogin.this,
+                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
+
+        mEmailView.setAdapter(adapter);
+    }
+
+
     private interface ProfileQuery {
         String[] PROJECTION = {
                 ContactsContract.CommonDataKinds.Email.ADDRESS,
@@ -256,15 +267,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
         int IS_PRIMARY = 1;
     }
 
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(ActivityLogin.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
-    }
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -287,10 +289,16 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
             // TODO: attempt authentication against a network service.
             long id  = dataSourceUsers.CreateUser(mEmail,mPassword);
 
-            User.getInstance().setID(id);
+            SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+            SharedPreferences.Editor editor = pref.edit();
+            //on the login store the login
+            editor.putLong("userID", id);
+            editor.commit();
+
+            //User.getInstance().setID(id);
             dataSourceUsers.close();
 
-            Log.w("error:","Ik kom hier");
+            //Log.w("error:","Ik kom hier");
             startActivity(intent);
 
             return true;

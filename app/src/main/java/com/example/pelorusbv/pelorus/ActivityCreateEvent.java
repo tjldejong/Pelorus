@@ -30,6 +30,9 @@ public class ActivityCreateEvent extends Activity {
     ListView listViewCourseList;
 
     long IDclickedCourse;
+    boolean CourseClicked;
+
+    Cursor cursorCourses;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,32 +46,7 @@ public class ActivityCreateEvent extends Activity {
         dataSourceHasCourse = new DataSourceHasCourse(this);
         //dataSourceHasCourse = new DataSourceHasCourse(this);
 
-        try {
-            dataSourceEvents.open();
-            dataSourceCourses.open();
-            dataSourceHasCourse.open();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
-        Cursor cursor = dataSourceCourses.getCoursesList();
-        startManagingCursor(cursor);
-
-        dataAdapter  = new SimpleCursorAdapter(
-                this,
-                R.layout.course_info,
-                cursor,
-                new String[]{TableCourses.COLUMN_NAME},
-                new int[]{R.id.textViewCourse}
-        );
-        listViewCourseList.setAdapter(dataAdapter);
-        listViewCourseList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                view.setSelected(true);
-                IDclickedCourse = id;
-            }
-        });
     }
 
 
@@ -96,9 +74,14 @@ public class ActivityCreateEvent extends Activity {
 
     public void OnClickCreateEvent(View view) {
         EditText editTextEvent = (EditText)findViewById(R.id.editTextName);
-        dataSourceEvents.CreateEvent(editTextEvent.getText().toString(), IDclickedCourse);
-        Intent intent = new Intent(this, ActivityMainMenu.class);
-        startActivity(intent);
+        if ((editTextEvent.length() != 0) && CourseClicked) {
+            dataSourceEvents.CreateEvent(editTextEvent.getText().toString(), IDclickedCourse);
+            Intent intent = new Intent(this, ActivityMainMenu.class);
+            startActivity(intent);
+        } else if (editTextEvent.length() == 0)
+            editTextEvent.setError("Give the event a name");
+        else if (!CourseClicked)
+            editTextEvent.setError("Select a course for this event");
     }
 
 
@@ -110,6 +93,8 @@ public class ActivityCreateEvent extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        stopManagingCursor(cursorCourses);
+        cursorCourses.close();
         dataSourceEvents.close();
     }
 
@@ -118,8 +103,32 @@ public class ActivityCreateEvent extends Activity {
         super.onResume();
         try {
             dataSourceEvents.open();
+            dataSourceCourses.open();
+            dataSourceHasCourse.open();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        cursorCourses = dataSourceCourses.getCoursesList();
+        startManagingCursor(cursorCourses);
+
+        dataAdapter = new SimpleCursorAdapter(
+                this,
+                R.layout.course_info,
+                cursorCourses,
+                new String[]{TableCourses.COLUMN_NAME},
+                new int[]{R.id.textViewCourse}
+        );
+
+        CourseClicked = false;
+        listViewCourseList.setAdapter(dataAdapter);
+        listViewCourseList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                view.setSelected(true);
+                IDclickedCourse = id;
+                CourseClicked = true;
+            }
+        });
     }
 }

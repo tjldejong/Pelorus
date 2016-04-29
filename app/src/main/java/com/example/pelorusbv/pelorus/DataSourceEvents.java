@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 
 import java.sql.SQLException;
 
@@ -11,11 +12,12 @@ import java.sql.SQLException;
  * Created by Tobias on 24-5-2015.
  */
 public class DataSourceEvents {
+    public static final String PROVIDER_NAME = "com.example.pelorus.pelorusbv.provider";
+    public static final Uri CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/customers");
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     private String[] eventColumns = {TableEvent.COLUMN_ID, TableEvent.COLUMN_NAME,TableEvent.COLUMN_COURSEID};
     private String[] courseColumns = {TableEvent.COLUMN_ID, TableEvent.COLUMN_COURSEID};
-
 
     public DataSourceEvents(Context context) {
         dbHelper = new MySQLiteHelper(context);

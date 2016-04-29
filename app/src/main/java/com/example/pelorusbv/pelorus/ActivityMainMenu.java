@@ -2,6 +2,7 @@ package com.example.pelorusbv.pelorus;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,7 +27,11 @@ public class ActivityMainMenu extends Activity {
             e.printStackTrace();
         }
 
-        long id = User.getInstance().getID();
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        long id = pref.getLong("userID", 0);
+
+        //long id = User.getInstance().getID();
+
 
         String email = dataSourceUsers.getEmail(id);
 
