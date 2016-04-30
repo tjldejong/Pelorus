@@ -16,6 +16,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +29,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.SphericalUtil;
 
 import java.sql.SQLException;
 import java.util.Timer;
@@ -46,9 +48,13 @@ public class ActivityDashboard extends FragmentActivity implements LocationListe
     int time;
     LatLng myPos;
     TextView speedText;
+    EditText windText;
+    TextView headingText;
     TextView timeText;
     TextView latText;
     TextView lngText;
+    TextView DTWText;
+    TextView VMGText;
     Marker Boat1Marker;
     Marker myBoatMarker;
     DataSourcePositions dataSourcePositions;
@@ -67,6 +73,7 @@ private GoogleApiClient mGoogleApiClient;
     private Buoy mark3;
     private Buoy mark4;
     private Buoy pampus;
+    private Buoy currentMark;
     private LocationRequest mLocationRequest;
 
     @Override
@@ -113,6 +120,10 @@ private GoogleApiClient mGoogleApiClient;
         mark2 = new Buoy(buoyArray[2], buoyArray[3]);
         mark3 = new Buoy(buoyArray[4], buoyArray[5]);
         mark4 = new Buoy(buoyArray[6], buoyArray[7]);
+
+        currentMark = mark1;
+
+
 
 //        mark1 = new Buoy(52.365319, (5.069827+0.01));
 //        mark2 = new Buoy((52.365319+0.01), 5.069827);
@@ -186,14 +197,29 @@ private GoogleApiClient mGoogleApiClient;
 
     private void updateDisplay(){
         timeText = (TextView)findViewById(R.id.textViewTime);
-        speedText =(TextView)findViewById(R.id.textViewSpeed);
+        windText = (EditText) findViewById(R.id.editTextWind);
+        speedText = (TextView) findViewById(R.id.textViewSpeed);
+        headingText = (TextView) findViewById(R.id.textViewHeading);
         latText = (TextView)findViewById(R.id.textViewLat);
         lngText = (TextView)findViewById(R.id.textViewLng);
+        DTWText = (TextView) findViewById(R.id.textViewDTW);
+        VMGText = (TextView) findViewById(R.id.textViewVMG);
+
+        double windAngle = Double.parseDouble(windText.getText().toString());
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(String.format("%.2f", myBoat.getSpeed(time, dataSourcePositions)));
+        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions)));
+        double heading = myBoat.getHeading(time, dataSourcePositions);
+        if (heading < 0) {
+            heading = 360 + heading;
+        }
+        headingText.setText(String.format("%.0f", heading));
         latText.setText(String.format("%.4f", myBoat.getPos().latitude));
         lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
+        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) * 1.943844);
+        DTWText.setText(String.format("%.1f", DTW));
+        double VMG = Math.cos(windAngle - heading) * myBoat.getSpeed(time, dataSourcePositions);
+        VMGText.setText(String.format("%.1f", VMG));
     }
 
     private void updateBoatPos(){

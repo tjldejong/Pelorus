@@ -8,13 +8,12 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="speedlbl">Speed:</string>
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="speed">0</string>
     <string name="joinEvent">Join Event (captains)</string>
     <string name="createEvent">Create Event (umpire)</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_create_event">Create Event</string>
     <string name="title_activity_create_boat">CreateBoat</string>
@@ -22,6 +21,6 @@
     <string name="title_activity_activity_join_boat">ActivityJoinBoat</string>
     <string name="title_activity_activity_pick_boat">ActivityPickBoat</string>
     <string name="title_activity_activity_create_event">ActivityCreateEvent</string>
-    <string name="speedLbl">Speed</string>
+    <string name="speedLbl">SOG</string>
 
 </resources>

@@ -1,87 +1,181 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="com.example.pelorusbv.pelorus.FragmentDisplay">
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:weightSum="4">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
         <TableRow
             android:id="@+id/tableRow1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px"
-            android:layout_weight="1"
             android:weightSum="2"
             >
             <TextView
                 android:id="@+id/textViewLatLbl"
-                android:text="Latitude"
-                android:layout_weight="1"/>
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:text="Latitude" />
 
             <TextView
                 android:id="@+id/textViewLngLbl"
-                android:text="Longitude"
+                android:layout_width="0dip"
+                android:layout_column="2"
                 android:layout_weight="1"
-                />
+                android:text="Longitude" />
         </TableRow>
         <TableRow
             android:id="@+id/tableRow2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px"
-            android:layout_weight="1"
             android:weightSum="2"
             >
             <TextView
                 android:id="@+id/textViewLat"
+                android:layout_width="0dip"
+                android:layout_weight="1"
                 android:text="Latitude"
-                android:layout_weight="1"/>
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/textViewLng"
-                android:text="Longitude"
+                android:layout_width="0dip"
+                android:layout_column="2"
                 android:layout_weight="1"
-                />
+                android:text="Longitude"
+                android:textSize="20sp" />
         </TableRow>
+
         <TableRow
             android:id="@+id/tableRow3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px"
-            android:layout_weight="1"
-            android:weightSum="2"
-            >
+            android:weightSum="2">
+
             <TextView
                 android:id="@+id/textViewTimeLbl"
-                android:text="Time"
+                android:layout_width="0dip"
                 android:layout_weight="1"
-                />
+                android:text="Time" />
+
             <TextView
-                android:id="@+id/textViewSpeedLbl"
-                android:text="@string/speedLbl"
+                android:id="@+id/textViewWindLbl"
+                android:layout_width="0dip"
+                android:layout_column="2"
                 android:layout_weight="1"
-                />
+                android:text="Wind" />
         </TableRow>
+
+
         <TableRow
             android:id="@+id/tableRow4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:padding="1px">
+
+            <TextView
+                android:id="@+id/textViewTime"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:text="Time"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/editTextWind"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:inputType="number"
+                android:text="1" />
+        </TableRow>
+        <TableRow
+            android:id="@+id/tableRow5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:padding="1px"
-            android:layout_weight="1"
             android:weightSum="2"
             >
             <TextView
-                android:id="@+id/textViewTime"
-                android:text="Time"
+                android:id="@+id/textViewHeadingLbl"
+                android:layout_width="0dip"
                 android:layout_weight="1"
+                android:text="Heading"
+                />
+            <TextView
+                android:id="@+id/textViewSpeedLbl"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_weight="1"
+                android:text="@string/speedLbl" />
+        </TableRow>
+        <TableRow
+            android:id="@+id/tableRow6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="1px"
+            android:weightSum="2"
+            >
+            <TextView
+                android:id="@+id/textViewHeading"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:text="Heading"
+                android:textSize="50sp"
                 />
             <TextView
                 android:id="@+id/textViewSpeed"
-                android:text="Speed"
+                android:layout_width="0dip"
+                android:layout_column="2"
                 android:layout_weight="1"
-                />
+                android:text="Speed"
+                android:textSize="50sp" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="1px"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/textViewDTWLbl"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:text="DTW" />
+
+            <TextView
+                android:id="@+id/textViewVMGLbl"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_weight="1"
+                android:text="VMG" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="1px"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/textViewDTW"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:text="DTW"
+                android:textSize="50sp" />
+
+            <TextView
+                android:id="@+id/textViewVMG"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_weight="1"
+                android:text="VMG"
+                android:textSize="50sp" />
         </TableRow>
     </TableLayout>
 

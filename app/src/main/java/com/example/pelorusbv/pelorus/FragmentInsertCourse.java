@@ -29,23 +29,22 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     OnFragmentInteractionListener mListener;
-
     View view;
-
     String name;
     Double latBuoy1;
     Double lngBuoy1;
     Double wind;
-
     SphericalUtil SpUtl;
-
     DataSourceCourses dataSourceCourses;
+    // TODO: Rename and change types of parameters
+    private String mParam1;
+    private String mParam2;
+
+    public FragmentInsertCourse() {
+        // Required empty public constructor
+    }
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -62,10 +61,6 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    public FragmentInsertCourse() {
-        // Required empty public constructor
     }
 
     @Override
@@ -111,9 +106,9 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         wind = Double.parseDouble(((EditText) this.getView().findViewById(R.id.editTextWind)).getText().toString());
 
         LatLng b1 = new LatLng(latBuoy1,lngBuoy1);
-        LatLng b2 = SpUtl.computeOffset(b1, 500, wind - 90);
-        LatLng b3 = SpUtl.computeOffset(b1, 1 * 1852, wind);
-        LatLng b4 = SpUtl.computeOffset(b1, 1 * 1852, wind - 180);
+        LatLng b2 = SphericalUtil.computeOffset(b1, 500, wind - 90);
+        LatLng b3 = SphericalUtil.computeOffset(b1, 1 * 1852, wind);
+        LatLng b4 = SphericalUtil.computeOffset(b1, 1 * 1852, wind - 180);
 
         if (mListener != null) {
             switch (view.getId()) {
@@ -148,6 +143,12 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         mListener = null;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        dataSourceCourses.close();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -162,12 +163,6 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         // TODO: Update argument type and name
         void onPreviewCourse(LatLng b1, LatLng b2, LatLng b3, LatLng b4);
         void onCreateCourse();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        dataSourceCourses.close();
     }
 
 
