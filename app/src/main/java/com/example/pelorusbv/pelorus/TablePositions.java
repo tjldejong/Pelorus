@@ -12,6 +12,7 @@ public class TablePositions {
     public static final String COLUMN_TIME = "time";
     public static final String COLUMN_POSLAT = "poslat";
     public static final String COLUMN_POSLNG = "poslng";
+    public static final String COLUMN_RUNID = "runid";
 
     // Database creation SQL statement
     private static final String CREATE_TABLE_POSITIONS = "create table "
@@ -20,7 +21,8 @@ public class TablePositions {
             + COLUMN_ID + " integer primary key autoincrement,"
             + COLUMN_TIME + " integer not null,"
             + COLUMN_POSLAT + " real not null,"
-            + COLUMN_POSLNG + " real not null);";
+            + COLUMN_POSLNG + " real not null,"
+            + COLUMN_RUNID + " real not null);";
 
 
     public static void onCreate(SQLiteDatabase database) {

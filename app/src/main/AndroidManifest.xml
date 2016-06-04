@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.pelorusbv.pelorus" >
+    package="com.example.pelorusbv.pelorus">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,8 +17,10 @@
      To retrieve OAuth 2.0 tokens or invalidate tokens to disconnect a user. This disconnect
      option is required to comply with the Google+ Sign-In developer policies
     -->
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" /> <!-- To retrieve the account name (email) as part of sign-in: -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" /> <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <!-- To retrieve the account name (email) as part of sign-in: -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
@@ -26,7 +28,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -36,16 +38,15 @@
 
         <activity
             android:name=".ActivityDashboard"
-            android:label="@string/title_activity_maps" >
-        </activity>
+            android:label="@string/title_activity_maps"
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".ActivityMainMenu"
-            android:label="@string/title_activity_main_menu" >
-        </activity>
+            android:label="@string/title_activity_main_menu"></activity>
         <activity
             android:name=".ActivityLogin"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
+            android:windowSoftInputMode="adjustResize|stateVisible">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -54,7 +55,7 @@
         </activity>
         <activity
             android:name=".ActivityCreateCourse"
-            android:label="@string/title_activity_create_event" >
+            android:label="@string/title_activity_create_event">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ActivityMainMenu" />
@@ -62,23 +63,21 @@
         <activity
             android:name=".ActivityCreateBoat"
             android:label="@string/title_activity_create_boat"
-            android:parentActivityName=".ActivityMainMenu" >
+            android:parentActivityName=".ActivityMainMenu">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ActivityMainMenu" />
         </activity>
         <activity
             android:name=".ActivityJoinEvent"
-            android:label="@string/title_activity_activity_join_event" >
-        </activity>
+            android:label="@string/title_activity_activity_join_event"></activity>
         <activity
             android:name=".ActivityJoinBoat"
-            android:label="@string/title_activity_activity_join_boat" >
-        </activity>
+            android:label="@string/title_activity_activity_join_boat"></activity>
         <activity
             android:name=".ActivityCreateEvent"
-            android:label="@string/title_activity_activity_create_event" >
-        </activity>
+            android:label="@string/title_activity_activity_create_event"></activity>
+        <activity android:name=".ActivitySpectate"></activity>
     </application>
 
 </manifest>

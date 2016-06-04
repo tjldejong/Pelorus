@@ -61,7 +61,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private Intent intent;
 
     private DataSourceUsers dataSourceUsers;
-    private User activeUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +105,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
             e.printStackTrace();
         }
 
-        activeUser = new User();
     }
 
     private void populateAutoComplete() {

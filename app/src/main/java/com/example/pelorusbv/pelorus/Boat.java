@@ -9,7 +9,7 @@ import com.google.maps.android.SphericalUtil;
  * Created by Menso on 16-2-2015.
  */
 public class Boat extends ActivityDashboard {
-
+    //Een boot object met een lat lng speed en heading
     private double lat;
     private double lng;
 
@@ -44,14 +44,12 @@ public class Boat extends ActivityDashboard {
         lng = y;
     }
 
-    public double getSpeed(int t, DataSourcePositions dataSource1) {
+    public double getSpeed(int t, DataSourcePositions dataSource1, int runID) {
         if (t > 1) {
             boatPos = new LatLng(lat, lng);
-            oldLat = dataSource1.getPosLat(t - dt);
-            oldLng = dataSource1.getPosLng(t - dt);
+            oldLat = dataSource1.getPosLat(t - dt, runID);
+            oldLng = dataSource1.getPosLng(t - dt, runID);
             oldBoatPos = new LatLng(oldLat,oldLng);
-            Log.i("oldposlat", String.format("%.6f", oldLat));
-            Log.i("newposlat", String.format("%.6f", lat));
             speed = (SphericalUtil.computeDistanceBetween(oldBoatPos, boatPos) * 1.943844) / dt; //speed in knots
             //speed = Math.sqrt( Math.pow(boatPos.latitude - oldLat, 2) + Math.pow(boatPos.longitude - oldLng,2))/dt;
             return speed;
@@ -61,11 +59,11 @@ public class Boat extends ActivityDashboard {
         }
     }
 
-    public float getHeading(int t, DataSourcePositions dataSource1) {
+    public float getHeading(int t, DataSourcePositions dataSource1, int runID) {
         if (t > 1) {
             boatPos = new LatLng(lat, lng);
-            oldLat = dataSource1.getPosLat(t - dt);
-            oldLng = dataSource1.getPosLng(t - dt);
+            oldLat = dataSource1.getPosLat(t - dt, runID);
+            oldLng = dataSource1.getPosLng(t - dt, runID);
             oldBoatPos = new LatLng(oldLat, oldLng);
             heading = SphericalUtil.computeHeading(oldBoatPos, boatPos); //heading in degree -180 to 180
             return (float) heading;

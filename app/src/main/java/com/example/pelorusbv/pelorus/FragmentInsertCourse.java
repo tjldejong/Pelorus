@@ -25,6 +25,9 @@ import java.sql.SQLException;
  * create an instance of this fragment.
  */
 public class FragmentInsertCourse extends Fragment implements View.OnClickListener {
+    //Fragment met buttons om course te maken.
+    //TODO: uitzoeken wat overbodig is hier
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -40,10 +43,6 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
-    public FragmentInsertCourse() {
-        // Required empty public constructor
-    }
 
     /**
      * Use this factory method to create a new instance of
@@ -78,6 +77,7 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
     }
 
     @Override
@@ -106,9 +106,9 @@ public class FragmentInsertCourse extends Fragment implements View.OnClickListen
         wind = Double.parseDouble(((EditText) this.getView().findViewById(R.id.editTextWind)).getText().toString());
 
         LatLng b1 = new LatLng(latBuoy1,lngBuoy1);
-        LatLng b2 = SphericalUtil.computeOffset(b1, 500, wind - 90);
-        LatLng b3 = SphericalUtil.computeOffset(b1, 1 * 1852, wind);
-        LatLng b4 = SphericalUtil.computeOffset(b1, 1 * 1852, wind - 180);
+        LatLng b2 = SphericalUtil.computeOffset(b1, 50, wind - 90);
+        LatLng b3 = SphericalUtil.computeOffset(b1, 0.1 * 1852, wind);
+        LatLng b4 = SphericalUtil.computeOffset(b1, 0.1 * 1852, wind - 180);
 
         if (mListener != null) {
             switch (view.getId()) {

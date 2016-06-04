@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,10 +24,13 @@ import java.sql.SQLException;
 
 
 public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
+    //Met een boot een event joinen.
+    //TODO: alleen schippers kunen met hun boat een event joinen
 
     DataSourceBoat dataSourceBoat;
     DataSourceCrews dataSourceCrews;
     DataSourceEvents dataSourceEvents;
+    DataSourcePositions dataSourcePositions;
 
     SimpleCursorAdapter dataAdapterBoat;
     SimpleCursorAdapter dataAdapterEvent;
@@ -37,7 +41,6 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
     boolean EventClicked;
     Cursor cursorEvent;
     Cursor cursorBoat;
-    Event activeEvent;
     private long IDclickedBoat;
     private long IDclickedEvent;
 
@@ -46,14 +49,13 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_activity_join_event);
 
-        activeEvent = new Event();
-
         listViewEventList = (ListView)findViewById(R.id.listViewEventList);
         listViewBoatList = (ListView)findViewById(R.id.listViewBoatList);
 
         dataSourceBoat = new DataSourceBoat(this);
         dataSourceCrews = new DataSourceCrews(this);
         dataSourceEvents = new DataSourceEvents(this);
+        dataSourcePositions = new DataSourcePositions(this);
     }
 
     @Override
@@ -62,6 +64,7 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
         dataSourceBoat.close();
         dataSourceCrews.close();
         dataSourceEvents.close();
+        dataSourcePositions.close();
         stopManagingCursor(cursorEvent);
         stopManagingCursor(cursorBoat);
         cursorEvent.close();
@@ -75,6 +78,7 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
             dataSourceBoat.open();
             dataSourceCrews.open();
             dataSourceEvents.open();
+            dataSourcePositions.open();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -152,7 +156,16 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
     public void OnClickJoinEvent(View view) {
         if (EventClicked && BoatClicked) {
             Intent intent = new Intent(this, ActivityDashboard.class);
-            Event.getInstance().setID(IDclickedEvent);
+
+            SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+            SharedPreferences.Editor editor = pref.edit();
+            Log.i("eventid", String.format("%d", IDclickedEvent));
+            editor.putLong("eventID", IDclickedEvent);
+            int LastRunID = dataSourcePositions.getMaxRunID();
+            Log.i("lastrunid", String.format("%d", LastRunID));
+            editor.putInt("runID", LastRunID + 1);
+            editor.commit();
+
             startActivity(intent);
         } else if (!EventClicked) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);

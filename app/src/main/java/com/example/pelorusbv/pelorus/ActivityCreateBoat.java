@@ -13,6 +13,9 @@ import java.sql.SQLException;
 
 
 public class ActivityCreateBoat extends Activity {
+    //Maakt een boot aan in de database
+    //TODO: Meer gegevens dan alleen naam toevoegen
+    //TODO: User die de boot creert toevoegen aan de boot met schipper-status
     DataSourceBoat dataSourceBoat;
 
     @Override

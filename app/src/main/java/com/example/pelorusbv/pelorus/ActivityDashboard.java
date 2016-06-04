@@ -1,5 +1,6 @@
 package com.example.pelorusbv.pelorus;
 
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
@@ -37,7 +38,7 @@ import java.util.TimerTask;
 
 
 public class ActivityDashboard extends FragmentActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener {
-
+    //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien.
     protected static final String TAG = "basic-location-sample";
     /**
      * Represents a geographical location.
@@ -55,11 +56,13 @@ public class ActivityDashboard extends FragmentActivity implements LocationListe
     TextView lngText;
     TextView DTWText;
     TextView VMGText;
-    Marker Boat1Marker;
+    Marker boat1Marker;
     Marker myBoatMarker;
     DataSourcePositions dataSourcePositions;
     DataSourceCourses dataSourceCourses;
     DataSourceEvents dataSourceEvents;
+    long eventID;
+    int runID;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 //
 //    protected TextView mLatitudeText;
@@ -85,9 +88,6 @@ private GoogleApiClient mGoogleApiClient;
         dataSourceCourses = new DataSourceCourses(this);
         dataSourceEvents = new DataSourceEvents(this);
 
-        long eventId = Event.getInstance().getID();
-        Log.w("eventid:", Long.toString(eventId));
-
         try {
             dataSourcePositions.open();
             dataSourceCourses.open();
@@ -96,22 +96,14 @@ private GoogleApiClient mGoogleApiClient;
             e.printStackTrace();
         }
 
-        dataSourcePositions.deletePositions();
-        dataSourcePositions.close();
-        dataSourcePositions = new DataSourcePositions(this);
-        try {
-            dataSourcePositions.open();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        eventID = pref.getLong("eventID", 0);
+        runID = pref.getInt("runID", 0);
+        Log.i("runID", String.format("%d", runID));
+        Log.i("eventID", String.format("%d", eventID));
 
-//        Cursor cursor = dataSourceEvents.getEvents();
-//        cursor.moveToFirst();
-//        Long courseId = cursor.getLong(2);
-//        cursor.close();
-//        long courseId = dataSourceEvents.getCourseID(eventId);
-        double[] buoyArray = dataSourceCourses.getBuoyPositions(1);
+        double[] buoyArray = dataSourceCourses.getBuoyPositions(eventID);
 
         boat1 = new Boat((52.365319), 5.069827);
         myBoat = new Boat(52.365319, 5.069827);
@@ -123,15 +115,7 @@ private GoogleApiClient mGoogleApiClient;
 
         currentMark = mark1;
 
-
-
-//        mark1 = new Buoy(52.365319, (5.069827+0.01));
-//        mark2 = new Buoy((52.365319+0.01), 5.069827);
-//        mark3 = new Buoy(52.365319, (5.069827-0.01));
-
         pampus = new Buoy(52.365319, 5.069827);
-
-
 
         buildGoogleApiClient();
 
@@ -208,17 +192,17 @@ private GoogleApiClient mGoogleApiClient;
         double windAngle = Double.parseDouble(windText.getText().toString());
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions)));
-        double heading = myBoat.getHeading(time, dataSourcePositions);
+        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions, runID)));
+        double heading = myBoat.getHeading(time, dataSourcePositions, runID);
         if (heading < 0) {
             heading = 360 + heading;
         }
         headingText.setText(String.format("%.0f", heading));
         latText.setText(String.format("%.4f", myBoat.getPos().latitude));
         lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
-        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) * 1.943844);
+        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
         DTWText.setText(String.format("%.1f", DTW));
-        double VMG = Math.cos(windAngle - heading) * myBoat.getSpeed(time, dataSourcePositions);
+        double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
         VMGText.setText(String.format("%.1f", VMG));
     }
 
@@ -233,16 +217,21 @@ private GoogleApiClient mGoogleApiClient;
             myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
             myBoatMarker.setPosition(myBoat.getPos());
-            myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions));
+            myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
 //            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
 //            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
             Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
+        if ((runID > 1) && (dataSourcePositions.getPosLat(time, runID - 1) != 0) && (dataSourcePositions.getPosLng(time, runID - 1) != 0)) {
+            boat1.setPos(dataSourcePositions.getPosLat(time, runID - 1), dataSourcePositions.getPosLng(time, runID - 1));
+            boat1Marker.setPosition(boat1.getPos());
+            boat1Marker.setRotation(boat1.getHeading(time, dataSourcePositions, runID - 1));
+        }
     }
 
     private void updateDatabase(){
-        dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude);
+        dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude, runID);
     }
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -324,6 +313,15 @@ private GoogleApiClient mGoogleApiClient;
            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
 
+        if (runID > 1) {
+            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1));
+            boat1Marker = mMap.addMarker(new MarkerOptions()
+                    .position(boat1.getPos())
+                    .title("LastRun")
+                    .flat(true)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
+        }
+
 
     }
 
@@ -349,7 +347,7 @@ private GoogleApiClient mGoogleApiClient;
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        Boat1Marker = mMap.addMarker(new MarkerOptions()
+        boat1Marker = mMap.addMarker(new MarkerOptions()
                 .position(boat1.getPos())
                 .title("boat1")
                 .flat(true)
@@ -386,13 +384,6 @@ private GoogleApiClient mGoogleApiClient;
     protected void startLocationUpdates() {
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
-    }
-
-    protected void createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     protected void stopLocationUpdates() {

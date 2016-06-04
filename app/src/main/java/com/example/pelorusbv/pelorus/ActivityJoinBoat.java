@@ -20,7 +20,8 @@ import java.sql.SQLException;
 
 
 public class ActivityJoinBoat extends ListActivity {
-
+    //Iedere user moet nu nog eerst bij een boot gaan om daarmee een event te kunnen joinen.
+    //TODO: als de user een boot joint die al in een event zit, meteen naar het dashbord van die boot gaan.
     DataSourceBoat dataSourceBoat;
     DataSourceCrews dataSourceCrews;
 

@@ -20,7 +20,7 @@ import java.sql.SQLException;
 
 
 public class ActivityCreateEvent extends Activity {
-
+    //Laat een lijst zien met mogelijke courses. Deze kunnen gebruikt worden om een event aan te maken.
     DataSourceEvents dataSourceEvents;
     DataSourceCourses dataSourceCourses;
     DataSourceHasCourse dataSourceHasCourse;

@@ -14,6 +14,9 @@ import java.sql.SQLException;
 
 
 public class ActivityMainMenu extends Activity {
+    //Menu met buttons om naar elke activiteit te gaan.
+    //TODO: Schipper buttons alleen voor schippers
+    //TODO: Umpire buttons alleen voor umpires
 
     DataSourceUsers dataSourceUsers;
     @Override
