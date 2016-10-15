@@ -1,12 +1,20 @@
 package com.example.pelorusbv.pelorus;
 
+import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresPermission;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.location.Location;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -17,7 +25,10 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +36,8 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -37,8 +50,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class ActivityDashboard extends FragmentActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener {
-    //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien.
+public class ActivityDashboard extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener {
+    //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien. LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener,
     protected static final String TAG = "basic-location-sample";
     /**
      * Represents a geographical location.
@@ -63,11 +76,12 @@ public class ActivityDashboard extends FragmentActivity implements LocationListe
     DataSourceEvents dataSourceEvents;
     long eventID;
     int runID;
+    Button buttonHS;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-//
+    //
 //    protected TextView mLatitudeText;
 //    protected TextView mLongitudeText;
-private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
     private Boat boat1;
     private Boat myBoat;
     private Buoy Start;
@@ -96,7 +110,6 @@ private GoogleApiClient mGoogleApiClient;
             e.printStackTrace();
         }
 
-
         SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
         eventID = pref.getLong("eventID", 0);
         runID = pref.getInt("runID", 0);
@@ -112,38 +125,43 @@ private GoogleApiClient mGoogleApiClient;
         mark2 = new Buoy(buoyArray[2], buoyArray[3]);
         mark3 = new Buoy(buoyArray[4], buoyArray[5]);
         mark4 = new Buoy(buoyArray[6], buoyArray[7]);
-
         currentMark = mark1;
-
         pampus = new Buoy(52.365319, 5.069827);
 
-        buildGoogleApiClient();
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
         setContentView(R.layout.activity_maps);
-        setUpMapIfNeeded();
+        buttonHS = (Button) findViewById(R.id.buttonhs);
+        buttonHS.setOnClickListener(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
 
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1 * 1000)        // 1 seconds, in milliseconds
-
                 .setFastestInterval(500); // 0.5 second, in milliseconds
+
 
     }
 
-
-    protected synchronized void buildGoogleApiClient() {
-       mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
 
         try {
             dataSourcePositions.open();
@@ -157,7 +175,7 @@ private GoogleApiClient mGoogleApiClient;
 
         sailingTimerTask = new TimerTask() {
             @Override
-            public void run(){
+            public void run() {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -172,47 +190,31 @@ private GoogleApiClient mGoogleApiClient;
             }
         };
 
-        sailingTimer.scheduleAtFixedRate(sailingTimerTask,1000,1000);
-
-        if (mGoogleApiClient.isConnected()) {
-            startLocationUpdates();
-        }
+        sailingTimer.scheduleAtFixedRate(sailingTimerTask, 1000, 1000);
     }
 
-    private void updateDisplay(){
-        timeText = (TextView)findViewById(R.id.textViewTime);
-        windText = (EditText) findViewById(R.id.editTextWind);
-        speedText = (TextView) findViewById(R.id.textViewSpeed);
-        headingText = (TextView) findViewById(R.id.textViewHeading);
-        latText = (TextView)findViewById(R.id.textViewLat);
-        lngText = (TextView)findViewById(R.id.textViewLng);
-        DTWText = (TextView) findViewById(R.id.textViewDTW);
-        VMGText = (TextView) findViewById(R.id.textViewVMG);
-
-        double windAngle = Double.parseDouble(windText.getText().toString());
-
-        timeText.setText(Integer.toString(time));
-        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions, runID)));
-        double heading = myBoat.getHeading(time, dataSourcePositions, runID);
-        if (heading < 0) {
-            heading = 360 + heading;
-        }
-        headingText.setText(String.format("%.0f", heading));
-        latText.setText(String.format("%.4f", myBoat.getPos().latitude));
-        lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
-        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
-        DTWText.setText(String.format("%.1f", DTW));
-        double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
-        VMGText.setText(String.format("%.1f", VMG));
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dataSourcePositions.close();
+        dataSourceCourses.close();
+        dataSourceEvents.close();
+        sailingTimer.cancel();
     }
 
-    private void updateBoatPos(){
-//        boat1.setPos(pampus.getPos().latitude - Math.cos(((double) time) / 10) / 100, pampus.getPos().longitude + Math.sin(((double) time) / 10) / 100);
-//        Boat1Marker.setPosition(boat1.getPos());
-//        Boat1Marker.setRotation(boat1.getHeading(time,dataSourcePositions));
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+
+    private void updateBoatPos() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
         if (mLastLocation != null) {
             myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
@@ -233,71 +235,48 @@ private GoogleApiClient mGoogleApiClient;
     private void updateDatabase(){
         dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude, runID);
     }
-    /**
-     * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
-     * <p/>
-     * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
-     * install/update the Google Play services APK on their device.
-     * <p/>
-     * A user can return to this FragmentActivity after following the prompt and correctly
-     * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
-     * have been completely destroyed during this process (it is likely that it would only be
-     * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
-     * method in {@link #onResume()} to guarantee that it will be called.
-     */
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
-            }
+
+    private void updateDisplay() {
+        timeText = (TextView) findViewById(R.id.textViewTime);
+        windText = (EditText) findViewById(R.id.editTextWind);
+        speedText = (TextView) findViewById(R.id.textViewSpeed);
+        headingText = (TextView) findViewById(R.id.textViewHeading);
+        latText = (TextView) findViewById(R.id.textViewLat);
+        lngText = (TextView) findViewById(R.id.textViewLng);
+        DTWText = (TextView) findViewById(R.id.textViewDTW);
+        VMGText = (TextView) findViewById(R.id.textViewVMG);
+
+        double windAngle = Double.parseDouble(windText.getText().toString());
+
+        timeText.setText(Integer.toString(time));
+        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions, runID)));
+        double heading = myBoat.getHeading(time, dataSourcePositions, runID);
+        if (heading < 0) {
+            heading = 360 + heading;
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        dataSourcePositions.close();
-        dataSourceCourses.close();
-        dataSourceEvents.close();
-        sailingTimer.cancel();
-        stopLocationUpdates();
+        headingText.setText(String.format("%.0f", heading));
+        latText.setText(String.format("%.4f", myBoat.getPos().latitude));
+        lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
+        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
+        DTWText.setText(String.format("%.1f", DTW));
+        double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
+        VMGText.setText(String.format("%.1f", VMG));
     }
 
     /**
      * Runs when a GoogleApiClient object successfully connects.
      */
     @Override
-  public void onConnected(Bundle connectionHint) {
+    public void onConnected(Bundle connectionHint) {
         // Provides a simple way of getting a device's location and is well suited for
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
-
-        startLocationUpdates();
-
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
         if (mLastLocation != null) {
             myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
             myBoat = new Boat(myPos.latitude, myPos.longitude);
@@ -321,32 +300,15 @@ private GoogleApiClient mGoogleApiClient;
                     .flat(true)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
         }
-
-
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+    public void onConnectionSuspended(int i) {
+
     }
 
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
-        Log.i(TAG, "Connection suspended");
-        mGoogleApiClient.connect();
-    }
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
-     */
-    private void setUpMap() {
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
         boat1Marker = mMap.addMarker(new MarkerOptions()
                 .position(boat1.getPos())
                 .title("boat1")
@@ -357,37 +319,25 @@ private GoogleApiClient mGoogleApiClient;
         mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));
         mMap.addMarker(new MarkerOptions().position(mark4.getPos()).title("mark4"));
         mMap.addMarker(new MarkerOptions().position(pampus.getPos()).title("Pampus"));
-
     }
 
-//    public void testrondje(){
-//        timer = new Timer();
-//        timer.schedule(new updateboatpos(),1000);
-//    }
-//
-//    class updateboatpos extends TimerTask{
-//        public void run(){
-//
-//        }
-//    }
-
-    public void onFragmentInteraction(Uri uri){
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-        mLastLocation = location;
-
-    }
-
-    protected void startLocationUpdates() {
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
-    }
-
-    protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient, this);
+    public void onClick(View v) {
+        if (v == buttonHS) {
+            TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
+            if (tableLayout.getLayoutParams().height != 0) {
+                tableLayout.getLayoutParams().height = 0;
+                buttonHS.setText("Show");
+            } else {
+                tableLayout.getLayoutParams().height = TableLayout.LayoutParams.WRAP_CONTENT;
+                buttonHS.setText("Hide");
+            }
+            tableLayout.requestLayout();
+        }
     }
 }

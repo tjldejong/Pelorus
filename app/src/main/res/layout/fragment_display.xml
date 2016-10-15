@@ -1,11 +1,11 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context="com.example.pelorusbv.pelorus.FragmentDisplay">
+    android:orientation="vertical">
     <TableLayout
+        android:id="@+id/tableLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center">
+        android:layout_height="wrap_content">
         <TableRow
             android:id="@+id/tableRow1"
             android:layout_width="wrap_content"
@@ -18,7 +18,6 @@
                 android:layout_width="0dip"
                 android:layout_weight="1"
                 android:text="Latitude" />
-
             <TextView
                 android:id="@+id/textViewLngLbl"
                 android:layout_width="0dip"
@@ -39,7 +38,6 @@
                 android:layout_weight="1"
                 android:text="Latitude"
                 android:textSize="20sp" />
-
             <TextView
                 android:id="@+id/textViewLng"
                 android:layout_width="0dip"
@@ -48,20 +46,17 @@
                 android:text="Longitude"
                 android:textSize="20sp" />
         </TableRow>
-
         <TableRow
             android:id="@+id/tableRow3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px"
             android:weightSum="2">
-
             <TextView
                 android:id="@+id/textViewTimeLbl"
                 android:layout_width="0dip"
                 android:layout_weight="1"
                 android:text="Time" />
-
             <TextView
                 android:id="@+id/textViewWindLbl"
                 android:layout_width="0dip"
@@ -69,21 +64,17 @@
                 android:layout_weight="1"
                 android:text="Wind" />
         </TableRow>
-
-
         <TableRow
             android:id="@+id/tableRow4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px">
-
             <TextView
                 android:id="@+id/textViewTime"
                 android:layout_width="0dip"
                 android:layout_weight="1"
                 android:text="Time"
                 android:textSize="20sp" />
-
             <EditText
                 android:id="@+id/editTextWind"
                 android:layout_width="0dip"
@@ -133,7 +124,6 @@
                 android:text="Speed"
                 android:textSize="50sp" />
         </TableRow>
-
         <TableRow
             android:id="@+id/tableRow7"
             android:layout_width="wrap_content"
@@ -154,21 +144,18 @@
                 android:layout_weight="1"
                 android:text="VMG" />
         </TableRow>
-
         <TableRow
             android:id="@+id/tableRow8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="1px"
             android:weightSum="2">
-
             <TextView
                 android:id="@+id/textViewDTW"
                 android:layout_width="0dip"
                 android:layout_weight="1"
                 android:text="DTW"
                 android:textSize="50sp" />
-
             <TextView
                 android:id="@+id/textViewVMG"
                 android:layout_width="0dip"
@@ -179,4 +166,9 @@
         </TableRow>
     </TableLayout>
 
-</FrameLayout>
+    <Button
+        android:id="@+id/buttonhs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="^^^ Hide ^^^" />
+</LinearLayout>
