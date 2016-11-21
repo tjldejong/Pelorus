@@ -4,73 +4,76 @@
     android:background="@drawable/background_blurred"
     tools:context="com.example.pelorusbv.pelorus.ActivityMainMenu">
 
-    <TableRow android:layout_marginBottom="50dp"
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_marginBottom="50dp"
         android:layout_marginTop="50dp">
 
-        <TextView android:id="@+id/textViewWelkom" android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/textViewWelkom"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_span="3"
+            android:padding="5dp"
             android:text="@string/app_name"
+            android:textColor="@color/Black"
             android:textSize="20sp"/>
-
     </TableRow>
-    <TableRow android:layout_marginBottom="10dp"
-        android:baselineAligned="false"
-        android:weightSum="1">
 
+    <TableRow android:id="@+id/rowCrew">
         <ImageButton
             android:id="@+id/buttonJoinBoat"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginLeft="60dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@drawable/join_boat"
             android:contentDescription="@string/title_activity_activity_join_boat"
             android:onClick="OnClickJoinBoat"
             android:text="Join Boat"
             />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/rowSpectate"
+        android:layout_marginBottom="10dp">
 
         <ImageButton
             android:id="@+id/button2"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="60dp"
-            android:width="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@drawable/spectate"
             android:text="Spectate Event" />
     </TableRow>
-    <TableRow android:layout_marginBottom="10dp">
+
+    <TableRow
+        android:id="@+id/rowCaptain"
+        android:layout_marginBottom="10dp">
+
         <Button
             android:id="@+id/JoinEventListButton"
-            android:layout_height="100dp"
-            android:layout_weight="0.33"
-            android:width="0dp"
+            android:layout_weight="1"
             android:onClick="OnClickJoinEventList"
-            android:text="@string/joinEvent"/>
+            android:text="@string/joinEvent" />
+
         <Button
             android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="0.33"
-            android:width="0dp"
+            android:layout_weight="1"
             android:text="Manage Boat (captains)"/>
 
         <Button
             android:id="@+id/buttonCreateBoat"
-            android:layout_height="match_parent"
-            android:layout_weight="0.33"
-            android:width="0dp"
+            android:layout_weight="1"
             android:onClick="OnClickCreateBoat"
             android:text="Create Boat (captains)"/>
 
-
     </TableRow>
-    <TableRow>
+
+    <TableRow android:id="@+id/rowUmpire">
         <Button
             android:id="@+id/CreateEventButton"
             android:layout_width="wrap_content"
             android:layout_height="100dp"
             android:layout_weight="1"
-            android:width="0dp"
             android:onClick="OnClickCreateEvent"
             android:text="@string/createEvent"/>
 

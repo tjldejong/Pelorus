@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MySQLiteHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "pelorus.db";
-    private static final int DATABASE_VERSION = 14;
+    private static final int DATABASE_VERSION = 17;
 
     public MySQLiteHelper(Context context){
         super(context,DATABASE_NAME,null,DATABASE_VERSION);
@@ -25,9 +25,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         TableEvent.onCreate(database);
         TableCourses.onCreate(database);
         TableHasCourses.onCreate(database);
-
-
-
     }
 
     @Override

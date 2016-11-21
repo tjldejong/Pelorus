@@ -5,12 +5,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.sql.SQLException;
+
+import static com.example.pelorusbv.pelorus.ActivityDashboard.TAG;
 
 
 public class ActivityMainMenu extends Activity {
@@ -23,6 +27,7 @@ public class ActivityMainMenu extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
+
         dataSourceUsers = new DataSourceUsers(this);
         try {
             dataSourceUsers.open();
@@ -37,9 +42,40 @@ public class ActivityMainMenu extends Activity {
 
 
         String email = dataSourceUsers.getEmail(id);
+        Integer userType = dataSourceUsers.getUserType(id);
+        Log.i(TAG, Integer.toString(userType));
+
+        TableRow trCrew = (TableRow) findViewById(R.id.rowCrew);
+        TableRow trCaptain = (TableRow) findViewById(R.id.rowCaptain);
+        TableRow trUmpire = (TableRow) findViewById(R.id.rowUmpire);
+        TableRow trSpectate = (TableRow) findViewById(R.id.rowSpectate);
+        switch (userType) {
+            case 0:
+                trCaptain.setVisibility(View.GONE);
+                trUmpire.setVisibility(View.GONE);
+                trSpectate.setVisibility(View.GONE);
+                break;
+            case 1:
+                trCrew.setVisibility(View.GONE);
+                trUmpire.setVisibility(View.GONE);
+                trSpectate.setVisibility(View.GONE);
+                break;
+            case 2:
+                trCrew.setVisibility(View.GONE);
+                trCaptain.setVisibility(View.GONE);
+                trSpectate.setVisibility(View.GONE);
+                break;
+            case 3:
+                trCrew.setVisibility(View.GONE);
+                trCaptain.setVisibility(View.GONE);
+                trUmpire.setVisibility(View.GONE);
+                break;
+        }
+
+
 
         TextView TextViewWelkom = (TextView)findViewById(R.id.textViewWelkom);
-        TextViewWelkom.setText("welkom bij Pelorus " + email);
+        TextViewWelkom.setText("Welcome to Pelorus " + email);
     }
 
 

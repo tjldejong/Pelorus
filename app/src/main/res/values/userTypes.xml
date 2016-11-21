@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="userType_array">
+        <item>Crew</item>
+        <item>Captain</item>
+        <item>Umpire</item>
+        <item>Spectator</item>
+    </string-array>
+</resources>

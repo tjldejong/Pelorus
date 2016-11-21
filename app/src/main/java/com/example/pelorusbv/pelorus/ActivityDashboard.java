@@ -2,6 +2,7 @@ package com.example.pelorusbv.pelorus;
 
 import android.app.FragmentManager;
 import android.content.DialogInterface;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -20,10 +21,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -34,6 +38,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -46,13 +52,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class ActivityDashboard extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener {
+public class ActivityDashboard extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener, LocationListener {
     //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien. LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener,
     protected static final String TAG = "basic-location-sample";
+    private static final Boolean REQUESTING_LOCATION_UPDATES_KEY = true;
+    private static final int MY_PERMISSIONS_REQUEST_READ_LOCATION = 0;
     /**
      * Represents a geographical location.
      */
@@ -151,11 +161,20 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 .setInterval(1 * 1000)        // 1 seconds, in milliseconds
                 .setFastestInterval(500); // 0.5 second, in milliseconds
 
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
+                        builder.build());
+
 
     }
 
     protected void onStart() {
-        mGoogleApiClient.connect();
+        if (!mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.connect();
+        }
         super.onStart();
     }
 
@@ -180,16 +199,16 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     @Override
                     public void run() {
                         time++;
-                        updateBoatPos();
                         updateDatabase();
-                        updateDisplay();
-
                     }
                 });
 
             }
         };
 
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
         sailingTimer.scheduleAtFixedRate(sailingTimerTask, 1000, 1000);
     }
 
@@ -200,28 +219,23 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         dataSourceCourses.close();
         dataSourceEvents.close();
         sailingTimer.cancel();
+        stopLocationUpdates();
     }
 
     @Override
-    protected void onStop() {
+    protected void onDestroy() {
+        super.onDestroy();
         mGoogleApiClient.disconnect();
-        super.onStop();
     }
 
 
     private void updateBoatPos() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
         if (mLastLocation != null) {
+            Log.i(TAG, "updateBoatPos: ja lastlocation");
             myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
             myBoatMarker.setPosition(myBoat.getPos());
             myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
-//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
             Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
@@ -246,7 +260,12 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         DTWText = (TextView) findViewById(R.id.textViewDTW);
         VMGText = (TextView) findViewById(R.id.textViewVMG);
 
-        double windAngle = Double.parseDouble(windText.getText().toString());
+        double windAngle;
+        if (TextUtils.isEmpty(windText.getText())) {
+            windAngle = 0;
+        } else {
+            windAngle = Double.parseDouble(windText.getText().toString());
+        }
 
         timeText.setText(Integer.toString(time));
         speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions, runID)));
@@ -258,6 +277,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         latText.setText(String.format("%.4f", myBoat.getPos().latitude));
         lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
         double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
+        Log.i(TAG, Double.toString(DTW));
         DTWText.setText(String.format("%.1f", DTW));
         double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
         VMGText.setText(String.format("%.1f", VMG));
@@ -272,8 +292,10 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_READ_LOCATION);
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
@@ -286,8 +308,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     .title("myBoat")
                     .flat(true)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
-//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         } else {
            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
@@ -300,6 +320,23 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     .flat(true)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
         }
+
+        startLocationUpdates();
+    }
+
+    protected void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_READ_LOCATION);
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
     }
 
     @Override
@@ -339,5 +376,15 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
             }
             tableLayout.requestLayout();
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        updateBoatPos();
+        updateDisplay();
+        String mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        Log.i(TAG, mLastUpdateTime);
+        Log.i(TAG, mLastLocation.toString());
     }
 }

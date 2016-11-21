@@ -11,6 +11,7 @@ public class TableUsers {
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
+    public static final String COLUMN_USERTYPE = "usertype";
 
 
     // Database creation SQL statement
@@ -19,7 +20,8 @@ public class TableUsers {
             + " ( "
             + COLUMN_ID + " integer primary key autoincrement,"
             + COLUMN_EMAIL + " text not null,"
-            + COLUMN_PASSWORD + " text not null);";
+            + COLUMN_PASSWORD + " text not null,"
+            + COLUMN_USERTYPE + " integer not null);";
 
 
     public static void onCreate(SQLiteDatabase database) {

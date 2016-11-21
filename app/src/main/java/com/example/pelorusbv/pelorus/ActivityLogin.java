@@ -22,10 +22,12 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.sql.SQLException;
@@ -35,30 +37,19 @@ import java.util.List;
 import javax.sql.DataSource;
 
 
-/**
- * A login screen that offers login via email/password.
- */
-public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
+public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor>, AdapterView.OnItemSelectedListener {
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world","a@b.nl:aaaaa"
-    };
-
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
     private UserLoginTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    private Spinner spinner;
     private View mProgressView;
     private View mLoginFormView;
     private Intent intent;
+
+    private Integer userType;
 
     private DataSourceUsers dataSourceUsers;
 
@@ -68,7 +59,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
         setContentView(R.layout.activity_login);
 
         intent = new Intent(this, ActivityMainMenu.class);
-
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -85,6 +75,17 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
                 return false;
             }
         });
+
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.userType_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(this);
+
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -110,7 +111,6 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
     private void populateAutoComplete() {
         getLoaderManager().initLoader(0, null, this);
     }
-
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -159,7 +159,7 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask(email, password, userType);
             mAuthTask.execute((Void) null);
         }
     }
@@ -254,6 +254,17 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
         mEmailView.setAdapter(adapter);
     }
 
+    public void onItemSelected(AdapterView<?> parent, View view,
+                               int pos, long id) {
+        // An item was selected. You can retrieve the selected item using
+        // parent.getItemAtPosition(pos)
+        userType = pos;
+
+    }
+
+    public void onNothingSelected(AdapterView<?> parent) {
+        // Another interface callback
+    }
 
     private interface ProfileQuery {
         String[] PROJECTION = {
@@ -273,19 +284,19 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
 
         private final String mEmail;
         private final String mPassword;
+        private final Integer mUserType;
 
 
-
-        UserLoginTask(String email, String password) {
+        UserLoginTask(String email, String password, Integer userType) {
             mEmail = email;
             mPassword = password;
-
+            mUserType = userType;
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            long id  = dataSourceUsers.CreateUser(mEmail,mPassword);
+            long id = dataSourceUsers.CreateUser(mEmail, mPassword, mUserType);
 
             SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
             SharedPreferences.Editor editor = pref.edit();
@@ -293,27 +304,11 @@ public class ActivityLogin extends Activity implements LoaderCallbacks<Cursor> {
             editor.putLong("userID", id);
             editor.commit();
 
-            //User.getInstance().setID(id);
             dataSourceUsers.close();
 
-            //Log.w("error:","Ik kom hier");
             startActivity(intent);
 
             return true;
-//            try {
-//                // Simulate network access.
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                return false;
-//            }
-//
-//            for (String credential : DUMMY_CREDENTIALS) {
-//                String[] pieces = credential.split(":");
-//                if (pieces[0].equals(mEmail)) {
-//                    // Account exists, return true if the password matches.
-//                    return pieces[1].equals(mPassword);
-//                }
-//            }
 
             // TODO: register the new account here.
 

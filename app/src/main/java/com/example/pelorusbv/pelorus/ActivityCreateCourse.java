@@ -1,10 +1,12 @@
 package com.example.pelorusbv.pelorus;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.widget.EditText;
@@ -24,6 +26,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.Locale;
 
 public class ActivityCreateCourse extends FragmentActivity implements FragmentInsertCourse.OnFragmentInteractionListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
+    private static final int MY_PERMISSIONS_REQUEST_READ_LOCATION = 0;
     protected Location mLastLocation;
     EditText latText;
     EditText lngText;
@@ -118,6 +121,11 @@ public class ActivityCreateCourse extends FragmentActivity implements FragmentIn
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_READ_LOCATION);
+        }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null) {

@@ -14,6 +14,7 @@ public class DataSourceUsers {
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     private String[] emailColumn = {TableUsers.COLUMN_ID,TableUsers.COLUMN_EMAIL};
+    private String[] usertypeColumn = {TableUsers.COLUMN_ID, TableUsers.COLUMN_USERTYPE};
     //private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
 
 
@@ -29,10 +30,11 @@ public class DataSourceUsers {
         dbHelper.close();
     }
 
-    public long CreateUser(String name, String password){
+    public long CreateUser(String name, String password, Integer usertype) {
         ContentValues values = new ContentValues();
         values.put(TableUsers.COLUMN_EMAIL, name);
         values.put(TableUsers.COLUMN_PASSWORD, password);
+        values.put(TableUsers.COLUMN_USERTYPE, usertype);
         long userID = database.insert(TableUsers.TABLE_USERS, null, values);
         return userID;
     }
@@ -44,5 +46,14 @@ public class DataSourceUsers {
         String email = cursor.getString(1);
         cursor.close();
         return email;
+    }
+
+    public Integer getUserType(long ID) {
+        String id = Long.toString(ID);
+        Cursor cursor = database.query(TableUsers.TABLE_USERS, usertypeColumn, TableUsers.COLUMN_ID + " = " + id, null, null, null, null);
+        cursor.moveToFirst();
+        Integer userType = cursor.getInt(1);
+        cursor.close();
+        return userType;
     }
 }
