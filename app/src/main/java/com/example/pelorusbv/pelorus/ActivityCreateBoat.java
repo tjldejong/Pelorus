@@ -3,6 +3,7 @@ package com.example.pelorusbv.pelorus;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -40,6 +41,8 @@ public class ActivityCreateBoat extends Activity {
     //TODO: Meer gegevens dan alleen naam toevoegen
     //TODO: User die de boot creert toevoegen aan de boot met schipper-status
     DataSourceBoat dataSourceBoat;
+    DataSourceCrews dataSourceCrews;
+    long userid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +50,16 @@ public class ActivityCreateBoat extends Activity {
         setContentView(R.layout.activity_create_boat);
 
         dataSourceBoat = new DataSourceBoat(this);
+        dataSourceCrews = new DataSourceCrews(this);
         try {
+            dataSourceCrews.open();
             dataSourceBoat.open();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        userid = pref.getLong("userID", 0);
     }
 
     @Override
@@ -80,7 +88,8 @@ public class ActivityCreateBoat extends Activity {
         EditText editTextBoatName = (EditText) findViewById(R.id.editTextBoatName);
         String BoatName = editTextBoatName.getText().toString();
         if (editTextBoatName.length() != 0) {
-            dataSourceBoat.CreateBoat(BoatName);
+            long boatid = dataSourceBoat.CreateBoat(BoatName);
+            dataSourceCrews.CreateCrews(userid, boatid);
 
             // Instantiate the RequestQueue.
             RequestQueue queue = Volley.newRequestQueue(this);
@@ -113,6 +122,7 @@ public class ActivityCreateBoat extends Activity {
     protected void onPause() {
         super.onPause();
         dataSourceBoat.close();
+        dataSourceCrews.close();
     }
 
     @Override
@@ -120,6 +130,7 @@ public class ActivityCreateBoat extends Activity {
         super.onResume();
         try {
             dataSourceBoat.open();
+            dataSourceCrews.open();
         } catch (SQLException e) {
             e.printStackTrace();
         }

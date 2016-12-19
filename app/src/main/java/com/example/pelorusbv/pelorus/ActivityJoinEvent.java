@@ -166,6 +166,8 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
             editor.putInt("runID", LastRunID + 1);
             editor.commit();
 
+            dataSourceBoat.setEventID(IDclickedBoat, IDclickedEvent);
+
             startActivity(intent);
         } else if (!EventClicked) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);

@@ -19,6 +19,7 @@ public class DataSourceBoat {
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     private String[] boatColumns = {TableBoat.COLUMN_ID,TableBoat.COLUMN_NAME};
+    private String[] eventColumns = {TableBoat.COLUMN_ID, TableBoat.COLUMN_EVENTID};
     //private String[] lngColumns = {TablePositions.COLUMN_POSLNG, TablePositions.COLUMN_TIME};
 
 
@@ -34,10 +35,12 @@ public class DataSourceBoat {
         dbHelper.close();
     }
 
-    public void CreateBoat(String name){
+    public long CreateBoat(String name) {
         ContentValues values = new ContentValues();
         values.put(TableBoat.COLUMN_NAME,name);
-        database.insert(TableBoat.TABLE_BOATS, null, values);
+        values.put(TableBoat.COLUMN_EVENTID, 0);
+        long boatID = database.insert(TableBoat.TABLE_BOATS, null, values);
+        return boatID;
     }
 
     public Cursor getBoatList(){
@@ -57,5 +60,19 @@ public class DataSourceBoat {
     public Cursor getBoatUserCrews(long id){
         Cursor cursor = database.query(TableBoat.TABLE_BOATS,boatColumns,TableBoat.COLUMN_ID + " in (SELECT " + TableCrews.COLUMN_BOATID + " FROM " + TableCrews.TABLE_CREWS + " WHERE " + TableCrews.COLUMN_USERID + " = " + Long.toString(id)+");",null,null,null,null );
         return cursor;
+    }
+
+    public void setEventID(long boatid, long eventid) {
+        ContentValues values = new ContentValues();
+        values.put(TableBoat.COLUMN_EVENTID, eventid);
+        database.update(TableBoat.TABLE_BOATS, values, TableBoat.COLUMN_ID + " = " + boatid, null);
+    }
+
+    public boolean boatInEventCheck(long boatid) {
+        Cursor cursor = database.query(TableBoat.TABLE_BOATS, eventColumns, TableBoat.COLUMN_ID + " = " + boatid, null, null, null, null);
+        cursor.moveToFirst();
+        Integer eventID = cursor.getInt(1);
+        cursor.close();
+        return !(eventID == 0);
     }
 }

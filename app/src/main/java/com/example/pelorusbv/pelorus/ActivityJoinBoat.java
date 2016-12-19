@@ -46,8 +46,27 @@ public class ActivityJoinBoat extends ListActivity {
             SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
             long id = pref.getLong("userID", 0);
             dataSourceCrews.CreateCrews(id, IDclickedBoat);
-            Intent intent = new Intent(this, ActivityMainMenu.class);
-            startActivity(intent);
+            if (dataSourceBoat.boatInEventCheck(IDclickedBoat)) {
+                Intent intent = new Intent(this, ActivityDashboard.class);
+                startActivity(intent);
+            } else {
+                // 1. Instantiate an AlertDialog.Builder with its constructor
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                // 2. Chain together various setter methods to set the dialog characteristics
+                builder.setMessage("Wait for captain to join event")
+                        .setTitle("Boat not in an event")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User clicked OK button
+                            }
+                        });
+
+                // 3. Get the AlertDialog from create()
+                AlertDialog dialog = builder.create();
+
+                dialog.show();
+            }
         } else {
             // 1. Instantiate an AlertDialog.Builder with its constructor
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
