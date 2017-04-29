@@ -93,7 +93,7 @@ public class ActivityCreateBoat extends Activity {
 
             // Instantiate the RequestQueue.
             RequestQueue queue = Volley.newRequestQueue(this);
-            String url = "http://10.0.0.4/addBoats.php?name=" + BoatName;
+            String url = "http://192.168.1.14/addBoats.php?name=" + BoatName;
 
             // Request a string response from the provided URL.
             StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -101,7 +101,7 @@ public class ActivityCreateBoat extends Activity {
                         @Override
                         public void onResponse(String response) {
                             // Display the first 500 characters of the response string.
-                            Log.i(TAG, "Response is: " + response.substring(0, 38));
+                            Log.i(TAG, "Response is: " + response);
 
                         }
                     }, new Response.ErrorListener() {

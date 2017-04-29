@@ -32,6 +32,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -81,6 +84,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     TextView VMGText;
     Marker boat1Marker;
     Marker myBoatMarker;
+    DataSourceBoat dataSourceBoats;
     DataSourcePositions dataSourcePositions;
     DataSourceCourses dataSourceCourses;
     DataSourceEvents dataSourceEvents;
@@ -103,16 +107,26 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     private Buoy currentMark;
     private LocationRequest mLocationRequest;
 
+    ListView listLeaderboard;
+
+    SimpleCursorAdapter dataAdapterLeaderboard;
+
+    Cursor cursorBoat;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         time = 0;
 
+
+        dataSourceBoats = new DataSourceBoat(this);
         dataSourcePositions = new DataSourcePositions(this);
         dataSourceCourses = new DataSourceCourses(this);
         dataSourceEvents = new DataSourceEvents(this);
 
         try {
+            dataSourceBoats.open();
             dataSourcePositions.open();
             dataSourceCourses.open();
             dataSourceEvents.open();
@@ -168,6 +182,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
                         builder.build());
 
+        listLeaderboard = (ListView)findViewById(R.id.listLeaderboard);
 
     }
 
@@ -200,6 +215,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     public void run() {
                         time++;
                         updateDatabase();
+                        updateLeaderboard();
                     }
                 });
 
@@ -215,9 +231,12 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onPause() {
         super.onPause();
+        dataSourceBoats.close();
         dataSourcePositions.close();
         dataSourceCourses.close();
         dataSourceEvents.close();
+        stopManagingCursor(cursorBoat);
+        cursorBoat.close();
         sailingTimer.cancel();
         stopLocationUpdates();
     }
@@ -367,12 +386,15 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     public void onClick(View v) {
         if (v == buttonHS) {
             TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
+            LinearLayout leaderbordLayout = (LinearLayout) findViewById(R.id.LinearLayoutLeaderbord);
             if (tableLayout.getLayoutParams().height != 0) {
                 tableLayout.getLayoutParams().height = 0;
-                buttonHS.setText("Show");
+                leaderbordLayout.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                buttonHS.setText("Show Dashboard");
             } else {
+                leaderbordLayout.getLayoutParams().height = 0;
                 tableLayout.getLayoutParams().height = TableLayout.LayoutParams.WRAP_CONTENT;
-                buttonHS.setText("Hide");
+                buttonHS.setText("Show Leaderboard");
             }
             tableLayout.requestLayout();
         }
@@ -386,5 +408,27 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         String mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         Log.i(TAG, mLastUpdateTime);
         Log.i(TAG, mLastLocation.toString());
+    }
+
+    public void updateLeaderboard(){
+
+        cursorBoat = dataSourceBoats.getBoatList();
+        startManagingCursor(cursorBoat);
+
+        dataAdapterLeaderboard  = new SimpleCursorAdapter(
+                this,
+                R.layout.boat_info,
+                cursorBoat,
+                new String[]{TableBoat.COLUMN_NAME},
+                new int[]{R.id.textViewBoat}
+        );
+
+        listLeaderboard.setAdapter(dataAdapterLeaderboard);
+
+        listLeaderboard.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
+
+
+
+
     }
 }

@@ -15,6 +15,7 @@ public class Boat extends ActivityDashboard {
 
     private LatLng boatPos;
     private LatLng oldBoatPos;
+    private double oldSpeed;
     private double speed;
     private double heading;
 
@@ -32,6 +33,7 @@ public class Boat extends ActivityDashboard {
         lat = x;
         lng = y;
         dt = 1;
+        oldSpeed =0;
     }
 
     public LatLng getPos() {
@@ -50,8 +52,8 @@ public class Boat extends ActivityDashboard {
             oldLat = dataSource1.getPosLat(t - dt, runID);
             oldLng = dataSource1.getPosLng(t - dt, runID);
             oldBoatPos = new LatLng(oldLat,oldLng);
-            speed = (SphericalUtil.computeDistanceBetween(oldBoatPos, boatPos) * 1.943844) / dt; //speed in knots
-            //speed = Math.sqrt( Math.pow(boatPos.latitude - oldLat, 2) + Math.pow(boatPos.longitude - oldLng,2))/dt;
+            speed = (oldSpeed + (SphericalUtil.computeDistanceBetween(oldBoatPos, boatPos) * 1.943844) / dt)/2; //speed in knots
+            oldSpeed = speed;
             return speed;
         }
         else {

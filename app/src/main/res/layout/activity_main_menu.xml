@@ -55,16 +55,12 @@
             android:onClick="OnClickJoinEventList"
             android:text="@string/joinEvent" />
 
-        <Button
-            android:id="@+id/button"
-            android:layout_weight="1"
-            android:text="Manage Boat (captains)"/>
 
         <Button
             android:id="@+id/buttonCreateBoat"
             android:layout_weight="1"
             android:onClick="OnClickCreateBoat"
-            android:text="Create Boat (captains)"/>
+            android:text="@string/create_boat_captains"/>
 
     </TableRow>
 

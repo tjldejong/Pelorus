@@ -22,5 +22,7 @@
     <string name="title_activity_activity_pick_boat">ActivityPickBoat</string>
     <string name="title_activity_activity_create_event">ActivityCreateEvent</string>
     <string name="speedLbl">SOG</string>
+    <string name="manage_boat_captains">Manage Boat (captains)</string>
+    <string name="create_boat_captains">Create Boat (captains)</string>
 
 </resources>
