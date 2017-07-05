@@ -16,6 +16,12 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.location.Location;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -60,6 +66,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.android.volley.VolleyLog.TAG;
+
 
 public class ActivityDashboard extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener, LocationListener {
     //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien. LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener,
@@ -90,6 +98,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     DataSourceEvents dataSourceEvents;
     long eventID;
     int runID;
+    long boatID;
     Button buttonHS;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     //
@@ -137,13 +146,11 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
         eventID = pref.getLong("eventID", 0);
         runID = pref.getInt("runID", 0);
+        boatID = pref.getLong("boatID",0);
         Log.i("runID", String.format("%d", runID));
         Log.i("eventID", String.format("%d", eventID));
 
         double[] buoyArray = dataSourceCourses.getBuoyPositions(eventID);
-
-        boat1 = new Boat((52.365319), 5.069827);
-        myBoat = new Boat(52.365319, 5.069827);
 
         mark1 = new Buoy(buoyArray[0], buoyArray[1]);
         mark2 = new Buoy(buoyArray[2], buoyArray[3]);
@@ -267,6 +274,25 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
 
     private void updateDatabase(){
         dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude, runID);
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://192.168.1.5/addPos.php?boat=" + myBoat.getBoatname() + "&lat=" + myBoat.getPos().latitude + "&lng=" + myBoat.getPos().longitude;
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        //Log.i(TAG, "Response is: " + response);
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i(TAG, "That didn't work!");
+            }
+        });
+        queue.add(stringRequest);
     }
 
     private void updateDisplay() {
@@ -320,7 +346,10 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 mGoogleApiClient);
         if (mLastLocation != null) {
             myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-            myBoat = new Boat(myPos.latitude, myPos.longitude);
+            Log.i("boatid",Long.toString(boatID));
+            String boatName = dataSourceBoats.getBoat(boatID);
+            Log.i("boatname",boatName);
+            myBoat = new Boat(myPos.latitude, myPos.longitude,boatName);
             mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
             myBoatMarker = mMap.addMarker(new MarkerOptions()
                     .position(myBoat.getPos())
@@ -332,7 +361,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         }
 
         if (runID > 1) {
-            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1));
+            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1),"LastRun");
             boat1Marker = mMap.addMarker(new MarkerOptions()
                     .position(boat1.getPos())
                     .title("LastRun")
@@ -365,11 +394,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
 
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        boat1Marker = mMap.addMarker(new MarkerOptions()
-                .position(boat1.getPos())
-                .title("boat1")
-                .flat(true)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
         mMap.addMarker(new MarkerOptions().position(mark1.getPos()).title("mark1"));
         mMap.addMarker(new MarkerOptions().position(mark2.getPos()).title("mark2"));
         mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));

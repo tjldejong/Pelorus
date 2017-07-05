@@ -164,6 +164,7 @@ public class ActivityJoinEvent extends Activity implements LoaderManager.LoaderC
             int LastRunID = dataSourcePositions.getMaxRunID();
             Log.i("lastrunid", String.format("%d", LastRunID));
             editor.putInt("runID", LastRunID + 1);
+            editor.putLong("boatID", IDclickedBoat );
             editor.commit();
 
             dataSourceBoat.setEventID(IDclickedBoat, IDclickedEvent);

@@ -12,6 +12,7 @@ public class Boat extends ActivityDashboard {
     //Een boot object met een lat lng speed en heading
     private double lat;
     private double lng;
+    private String name;
 
     private LatLng boatPos;
     private LatLng oldBoatPos;
@@ -29,7 +30,8 @@ public class Boat extends ActivityDashboard {
     private int dt;
 
 
-    public Boat(double x, double y) {
+    public Boat(double x, double y, String boatname) {
+        name = boatname;
         lat = x;
         lng = y;
         dt = 1;
@@ -52,7 +54,7 @@ public class Boat extends ActivityDashboard {
             oldLat = dataSource1.getPosLat(t - dt, runID);
             oldLng = dataSource1.getPosLng(t - dt, runID);
             oldBoatPos = new LatLng(oldLat,oldLng);
-            speed = (oldSpeed + (SphericalUtil.computeDistanceBetween(oldBoatPos, boatPos) * 1.943844) / dt)/2; //speed in knots
+            speed = (oldSpeed +((SphericalUtil.computeDistanceBetween(oldBoatPos, boatPos)/dt)* 1.943846))/2; //speed in knots
             oldSpeed = speed;
             return speed;
         }
@@ -71,6 +73,10 @@ public class Boat extends ActivityDashboard {
             return (float) heading;
         } else
             return 0;
+    }
+
+    public String getBoatname(){
+        return name;
     }
 
 

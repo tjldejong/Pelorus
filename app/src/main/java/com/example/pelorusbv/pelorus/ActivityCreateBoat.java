@@ -93,7 +93,7 @@ public class ActivityCreateBoat extends Activity {
 
             // Instantiate the RequestQueue.
             RequestQueue queue = Volley.newRequestQueue(this);
-            String url = "http://192.168.1.14/addBoats.php?name=" + BoatName;
+            String url = "http://192.168.1.5/addBoats.php?name=" + BoatName;
 
             // Request a string response from the provided URL.
             StringRequest stringRequest = new StringRequest(Request.Method.GET, url,

@@ -75,4 +75,14 @@ public class DataSourceBoat {
         cursor.close();
         return !(eventID == 0);
     }
+
+    public String getBoat(long boatid){
+        Cursor cursor = database.query(TableBoat.TABLE_BOATS,boatColumns,TableBoat.COLUMN_ID + " = " + boatid,null,null,null,null );
+        cursor.moveToFirst();
+        String boatname = cursor.getString(1);
+        cursor.close();
+        return  boatname;
+    }
+
+
 }
