@@ -1,6 +1,6 @@
 package com.example.pelorusbv.pelorus;
 
-import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -10,6 +10,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
+
+
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -33,9 +35,16 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.ListFragment;
+import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -52,6 +61,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -122,12 +132,24 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
 
     Cursor cursorBoat;
 
+    MyAdapter mAdapter;
+
+    ViewPager mPager;
+
+    SupportMapFragment mapFragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        time = 0;
+        setContentView(R.layout.activity_maps);
 
+        mAdapter = new MyAdapter(getSupportFragmentManager());
+
+        mPager = (ViewPager)findViewById(R.id.pager);
+        mPager.setAdapter(mAdapter);
+
+        time = 0;
 
         dataSourceBoats = new DataSourceBoat(this);
         dataSourcePositions = new DataSourcePositions(this);
@@ -168,12 +190,21 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     .build();
         }
 
-        setContentView(R.layout.activity_maps);
-        buttonHS = (Button) findViewById(R.id.buttonhs);
-        buttonHS.setOnClickListener(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            public void onPageScrollStateChanged(int state) {}
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            public void onPageSelected(int position) {
+                // Check if this is the page you want.
+                if (position == 2) {
+                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                            .findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(ActivityDashboard.this);
+
+                }
+            }
+        });
+
 
 
         // Create the LocationRequest object
@@ -189,7 +220,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
                         builder.build());
 
-        listLeaderboard = (ListView)findViewById(R.id.listLeaderboard);
+
 
     }
 
@@ -222,7 +253,8 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     public void run() {
                         time++;
                         updateDatabase();
-                        updateLeaderboard();
+                        if (mPager.getCurrentItem()==1){
+                        updateLeaderboard();}
                     }
                 });
 
@@ -259,23 +291,20 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         if (mLastLocation != null) {
             Log.i(TAG, "updateBoatPos: ja lastlocation");
             myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
-            myBoatMarker.setPosition(myBoat.getPos());
-            myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
+            if (mPager.getCurrentItem()==2) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
+                myBoatMarker.setPosition(myBoat.getPos());
+                myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
+            }
         } else {
             Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
-        }
-        if ((runID > 1) && (dataSourcePositions.getPosLat(time, runID - 1) != 0) && (dataSourcePositions.getPosLng(time, runID - 1) != 0)) {
-            boat1.setPos(dataSourcePositions.getPosLat(time, runID - 1), dataSourcePositions.getPosLng(time, runID - 1));
-            boat1Marker.setPosition(boat1.getPos());
-            boat1Marker.setRotation(boat1.getHeading(time, dataSourcePositions, runID - 1));
         }
     }
 
     private void updateDatabase(){
         dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude, runID);
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://192.168.1.5/addPos.php?boat=" + myBoat.getBoatname() + "&lat=" + myBoat.getPos().latitude + "&lng=" + myBoat.getPos().longitude;
+        String url = "http://download.soft.nl/pelorus/addPos.php?boatid=2&lat=" + myBoat.getPos().latitude + "&lng=" + myBoat.getPos().longitude;//" + myBoat.getBoatname() + "
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -350,24 +379,11 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
             String boatName = dataSourceBoats.getBoat(boatID);
             Log.i("boatname",boatName);
             myBoat = new Boat(myPos.latitude, myPos.longitude,boatName);
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
-            myBoatMarker = mMap.addMarker(new MarkerOptions()
-                    .position(myBoat.getPos())
-                    .title("myBoat")
-                    .flat(true)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
         } else {
            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
 
-        if (runID > 1) {
-            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1),"LastRun");
-            boat1Marker = mMap.addMarker(new MarkerOptions()
-                    .position(boat1.getPos())
-                    .title("LastRun")
-                    .flat(true)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
-        }
+
 
         startLocationUpdates();
     }
@@ -399,6 +415,20 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));
         mMap.addMarker(new MarkerOptions().position(mark4.getPos()).title("mark4"));
         mMap.addMarker(new MarkerOptions().position(pampus.getPos()).title("Pampus"));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
+        myBoatMarker = mMap.addMarker(new MarkerOptions()
+                .position(myBoat.getPos())
+                .title("myBoat")
+                .flat(true)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
+        if (runID > 1) {
+            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1),"LastRun");
+            boat1Marker = mMap.addMarker(new MarkerOptions()
+                    .position(boat1.getPos())
+                    .title("LastRun")
+                    .flat(true)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
+        }
     }
 
     @Override
@@ -428,7 +458,8 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         updateBoatPos();
-        updateDisplay();
+        if(mPager.getCurrentItem()==0){
+            updateDisplay();}
         String mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         Log.i(TAG, mLastUpdateTime);
         Log.i(TAG, mLastLocation.toString());
@@ -447,12 +478,44 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 new int[]{R.id.textViewBoat}
         );
 
+        listLeaderboard = (ListView)findViewById(R.id.listLeaderboard);
         listLeaderboard.setAdapter(dataAdapterLeaderboard);
 
         listLeaderboard.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
+    }
 
+    public static class MyAdapter extends FragmentPagerAdapter {
+        public MyAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        @Override
+        public int getCount() {
+            return 3;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+                switch (position) {
+                    case 0:
+                        return FragmentDisplay.newInstance();
+                    case 1:
+                        return FragmentLeaderBoard.newInstance();
+                    case 2:
+                        return FragmentMap.newInstance();
+                    default:
+                        return null;
+                }
+            }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return "Page " + position;
+        }
+
+
+    }
 
 
 
     }
-}

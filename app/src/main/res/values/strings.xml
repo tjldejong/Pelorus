@@ -24,5 +24,7 @@
     <string name="speedLbl">SOG</string>
     <string name="manage_boat_captains">Manage Boat (captains)</string>
     <string name="create_boat_captains">Create Boat (captains)</string>
+    <string name="title_activity_in_race">InRace</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 
 </resources>

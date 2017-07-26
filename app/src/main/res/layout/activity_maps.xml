@@ -1,38 +1,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <fragment
-        android:id="@+id/fragmentDisplay"
-        android:name="com.example.pelorusbv.pelorus.FragmentDisplay"
+
+    <android.support.v4.view.ViewPager
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:layout="@layout/fragment_display" />
-    <fragment
-        android:id="@+id/LinearLayoutLeaderbord"
-        android:name="com.example.pelorusbv.pelorus.FragmentLeaderBoard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:layout="@layout/fragment_leader_board" />
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        map:cameraBearing="0"
-        map:cameraTargetLat="52.365319"
-        map:cameraTargetLng="5.069827"
-        map:cameraTilt="0"
-        map:cameraZoom="13"
-        map:mapType="normal"
-        map:uiCompass="true"
-        map:uiRotateGestures="true"
-        map:uiScrollGestures="true"
-        map:uiTiltGestures="true"
-        map:uiZoomControls="true"
-        map:uiZoomGestures="true"
-        tools:context=".MapsActivity"
-        tools:layout="@layout/fragment_map" />
+        android:layout_height="match_parent" />
+    <!--<fragment-->
+        <!--android:id="@+id/fragmentDisplay"-->
+        <!--android:name="com.example.pelorusbv.pelorus.FragmentDisplay"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--tools:layout="@layout/fragment_display" />-->
+    <!--<fragment-->
+        <!--android:id="@+id/LinearLayoutLeaderbord"-->
+        <!--android:name="com.example.pelorusbv.pelorus.FragmentLeaderBoard"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--tools:layout="@layout/fragment_leader_board" />-->
+
 </LinearLayout>

@@ -19,6 +19,11 @@ public class FragmentLeaderBoard extends Fragment {
         // Required empty public constructor
     }
 
+    public static FragmentLeaderBoard newInstance() {
+        FragmentLeaderBoard leaderBoardFragment = new FragmentLeaderBoard();
+        return leaderBoardFragment;
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

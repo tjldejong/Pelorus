@@ -3,14 +3,25 @@ package com.example.pelorusbv.pelorus;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import com.google.maps.android.SphericalUtil;
 
 public class FragmentDisplay extends Fragment {
 
     public FragmentDisplay() {
+    }
+
+    public static FragmentDisplay newInstance() {
+        FragmentDisplay displayFragment = new FragmentDisplay();
+        return displayFragment;
     }
 
 
@@ -24,5 +35,7 @@ public class FragmentDisplay extends Fragment {
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_display, container, false);
     }
+
+
 
 }
