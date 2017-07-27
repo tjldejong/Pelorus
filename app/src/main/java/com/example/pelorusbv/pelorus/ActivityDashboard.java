@@ -1,16 +1,10 @@
 package com.example.pelorusbv.pelorus;
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.IntentSender;
+
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresPermission;
-
 
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -29,64 +23,50 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
+
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+
 import com.google.maps.android.SphericalUtil;
 
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.android.volley.VolleyLog.TAG;
+/**
+ * TODO: check speed calculations
+ * TODO: keep track of leaderboard
+ * TODO: cursor error fixen
+ *
+ * TODO: layout beter maken
+ */
 
+public class ActivityDashboard extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
-public class ActivityDashboard extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener, LocationListener {
-    //Kaartje met huidige locatie, locatie van vorige run en de boeien. Laat ook alle meters zien. LocationListener, ConnectionCallbacks, OnConnectionFailedListener, FragmentDisplay.OnFragmentInteractionListener,
     protected static final String TAG = "basic-location-sample";
-    private static final Boolean REQUESTING_LOCATION_UPDATES_KEY = true;
     private static final int MY_PERMISSIONS_REQUEST_READ_LOCATION = 0;
-    /**
-     * Represents a geographical location.
-     */
+
     protected Location mLastLocation;
     Timer sailingTimer;
     TimerTask sailingTimerTask;
@@ -100,8 +80,8 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     TextView lngText;
     TextView DTWText;
     TextView VMGText;
-    Marker boat1Marker;
-    Marker myBoatMarker;
+    ListView listLeaderboard;
+
     DataSourceBoat dataSourceBoats;
     DataSourcePositions dataSourcePositions;
     DataSourceCourses dataSourceCourses;
@@ -109,42 +89,33 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
     long eventID;
     int runID;
     long boatID;
-    Button buttonHS;
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    //
-//    protected TextView mLatitudeText;
-//    protected TextView mLongitudeText;
+
     private GoogleApiClient mGoogleApiClient;
-    private Boat boat1;
+
     private Boat myBoat;
+
     private Buoy Start;
     private Buoy mark1;
     private Buoy mark2;
     private Buoy mark3;
     private Buoy mark4;
-    private Buoy pampus;
     private Buoy currentMark;
+
     private LocationRequest mLocationRequest;
 
-    ListView listLeaderboard;
-
+    Cursor cursorBoat;
     SimpleCursorAdapter dataAdapterLeaderboard;
 
-    Cursor cursorBoat;
-
-    MyAdapter mAdapter;
+    MyFragmentPagerAdapter mAdapter;
 
     ViewPager mPager;
-
-    SupportMapFragment mapFragment;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        mAdapter = new MyAdapter(getSupportFragmentManager());
+        mAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager());
 
         mPager = (ViewPager)findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
@@ -169,8 +140,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         eventID = pref.getLong("eventID", 0);
         runID = pref.getInt("runID", 0);
         boatID = pref.getLong("boatID",0);
-        Log.i("runID", String.format("%d", runID));
-        Log.i("eventID", String.format("%d", eventID));
 
         double[] buoyArray = dataSourceCourses.getBuoyPositions(eventID);
 
@@ -179,7 +148,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         mark3 = new Buoy(buoyArray[4], buoyArray[5]);
         mark4 = new Buoy(buoyArray[6], buoyArray[7]);
         currentMark = mark1;
-        pampus = new Buoy(52.365319, 5.069827);
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -189,23 +157,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     .addApi(LocationServices.API)
                     .build();
         }
-
-        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            public void onPageScrollStateChanged(int state) {}
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
-
-            public void onPageSelected(int position) {
-                // Check if this is the page you want.
-                if (position == 2) {
-                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                            .findFragmentById(R.id.map);
-                    mapFragment.getMapAsync(ActivityDashboard.this);
-
-                }
-            }
-        });
-
-
 
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
@@ -289,12 +240,12 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
 
     private void updateBoatPos() {
         if (mLastLocation != null) {
-            Log.i(TAG, "updateBoatPos: ja lastlocation");
             myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            if (mPager.getCurrentItem()==2) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
-                myBoatMarker.setPosition(myBoat.getPos());
-                myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
+            if (mPager.getCurrentItem() == 2) {
+                mAdapter.fmap.updateBoatPosOnMap(time,dataSourcePositions,runID);
+//                mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
+//                myBoatMarker.setPosition(myBoat.getPos());
+//                myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
             }
         } else {
             Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
@@ -311,9 +262,7 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
                         //Log.i(TAG, "Response is: " + response);
-
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -351,7 +300,6 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         latText.setText(String.format("%.4f", myBoat.getPos().latitude));
         lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
         double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
-        Log.i(TAG, Double.toString(DTW));
         DTWText.setText(String.format("%.1f", DTW));
         double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
         VMGText.setText(String.format("%.1f", VMG));
@@ -375,16 +323,11 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                 mGoogleApiClient);
         if (mLastLocation != null) {
             myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-            Log.i("boatid",Long.toString(boatID));
             String boatName = dataSourceBoats.getBoat(boatID);
-            Log.i("boatname",boatName);
             myBoat = new Boat(myPos.latitude, myPos.longitude,boatName);
         } else {
            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }
-
-
-
         startLocationUpdates();
     }
 
@@ -408,50 +351,9 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
 
     }
 
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.addMarker(new MarkerOptions().position(mark1.getPos()).title("mark1"));
-        mMap.addMarker(new MarkerOptions().position(mark2.getPos()).title("mark2"));
-        mMap.addMarker(new MarkerOptions().position(mark3.getPos()).title("mark3"));
-        mMap.addMarker(new MarkerOptions().position(mark4.getPos()).title("mark4"));
-        mMap.addMarker(new MarkerOptions().position(pampus.getPos()).title("Pampus"));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(myPos));
-        myBoatMarker = mMap.addMarker(new MarkerOptions()
-                .position(myBoat.getPos())
-                .title("myBoat")
-                .flat(true)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
-        if (runID > 1) {
-            boat1 = new Boat(dataSourcePositions.getPosLat(2, runID - 1), dataSourcePositions.getPosLng(2, runID - 1),"LastRun");
-            boat1Marker = mMap.addMarker(new MarkerOptions()
-                    .position(boat1.getPos())
-                    .title("LastRun")
-                    .flat(true)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat_red)));
-        }
-    }
-
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v == buttonHS) {
-            TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
-            LinearLayout leaderbordLayout = (LinearLayout) findViewById(R.id.LinearLayoutLeaderbord);
-            if (tableLayout.getLayoutParams().height != 0) {
-                tableLayout.getLayoutParams().height = 0;
-                leaderbordLayout.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                buttonHS.setText("Show Dashboard");
-            } else {
-                leaderbordLayout.getLayoutParams().height = 0;
-                tableLayout.getLayoutParams().height = TableLayout.LayoutParams.WRAP_CONTENT;
-                buttonHS.setText("Show Leaderboard");
-            }
-            tableLayout.requestLayout();
-        }
     }
 
     @Override
@@ -484,8 +386,10 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         listLeaderboard.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
     }
 
-    public static class MyAdapter extends FragmentPagerAdapter {
-        public MyAdapter(FragmentManager fragmentManager) {
+    private static class MyFragmentPagerAdapter extends FragmentPagerAdapter {
+        FragmentMap fmap;
+
+        private MyFragmentPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
         }
 
@@ -502,7 +406,8 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
                     case 1:
                         return FragmentLeaderBoard.newInstance();
                     case 2:
-                        return FragmentMap.newInstance();
+                        fmap = FragmentMap.newInstance();
+                        return fmap;
                     default:
                         return null;
                 }
@@ -512,10 +417,10 @@ public class ActivityDashboard extends FragmentActivity implements OnMapReadyCal
         public CharSequence getPageTitle(int position) {
             return "Page " + position;
         }
-
-
     }
 
-
-
+    public Boat getMyBoat(){
+        return myBoat;
     }
+
+}
