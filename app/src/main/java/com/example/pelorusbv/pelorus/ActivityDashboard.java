@@ -57,7 +57,7 @@ import java.util.TimerTask;
 /**
  * TODO: check speed calculations
  * TODO: keep track of leaderboard
- * TODO: cursor error fixen
+ * TODO: cursor error fixen  
  *
  * TODO: layout beter maken
  */
