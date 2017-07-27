@@ -55,10 +55,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * TODO: check speed calculations
  * TODO: keep track of leaderboard
  * TODO: cursor error fixen  
- *
+ * TODO: Change datasource 1 to add times of pos
  * TODO: layout beter maken
  */
 
@@ -164,12 +163,12 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
                 .setInterval(1 * 1000)        // 1 seconds, in milliseconds
                 .setFastestInterval(500); // 0.5 second, in milliseconds
 
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
-                        builder.build());
+//        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+//                .addLocationRequest(mLocationRequest);
+//
+//        PendingResult<LocationSettingsResult> result =
+//                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
+//                        builder.build());
 
 
 
@@ -240,7 +239,7 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
 
     private void updateBoatPos() {
         if (mLastLocation != null) {
-            myBoat.setPos(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            myBoat.setLocation(mLastLocation);
             if (mPager.getCurrentItem() == 2) {
                 mAdapter.fmap.updateBoatPosOnMap(time,dataSourcePositions,runID);
 //                mMap.animateCamera(CameraUpdateFactory.newLatLng(myBoat.getPos()));
@@ -253,9 +252,9 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
     }
 
     private void updateDatabase(){
-        dataSourcePositions.createPosition(time, myBoat.getPos().latitude, myBoat.getPos().longitude, runID);
+        dataSourcePositions.createPosition(time, myBoat.getLocation().getLatitude(),  myBoat.getLocation().getLongitude(), runID);
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://download.soft.nl/pelorus/addPos.php?boatid=2&lat=" + myBoat.getPos().latitude + "&lng=" + myBoat.getPos().longitude;//" + myBoat.getBoatname() + "
+        String url = "http://download.soft.nl/pelorus/addPos.php?boatid=2&lat=" + myBoat.getLocation().getLatitude() + "&lng=" + myBoat.getLocation().getLongitude();//" + myBoat.getBoatname() + "
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -291,17 +290,15 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         }
 
         timeText.setText(Integer.toString(time));
-        speedText.setText(String.format("%.1f", myBoat.getSpeed(time, dataSourcePositions, runID)));
-        double heading = myBoat.getHeading(time, dataSourcePositions, runID);
-        if (heading < 0) {
-            heading = 360 + heading;
-        }
-        headingText.setText(String.format("%.0f", heading));
-        latText.setText(String.format("%.4f", myBoat.getPos().latitude));
-        lngText.setText(String.format("%.4f", myBoat.getPos().longitude));
-        double DTW = (SphericalUtil.computeDistanceBetween(myBoat.getPos(), currentMark.getPos()) / 1852);
+        speedText.setText(String.format("%.1f", myBoat.getSpeed()));
+        Log.i("Heading: ", Float.toString(myBoat.getHeading()));
+
+        headingText.setText(String.format("%.0f", myBoat.getHeading()));
+        latText.setText(String.format("%.4f", myBoat.getLocation().getLatitude()));
+        lngText.setText(String.format("%.4f", myBoat.getLocation().getLongitude()));
+        double DTW = (SphericalUtil.computeDistanceBetween(new LatLng(myBoat.getLocation().getLatitude(),myBoat.getLocation().getLongitude()), currentMark.getPos()) / 1852);
         DTWText.setText(String.format("%.1f", DTW));
-        double VMG = Math.cos(((windAngle - heading) / 360) * 2 * Math.PI) * myBoat.getSpeed(time, dataSourcePositions, runID);
+        double VMG = Math.cos(((windAngle - myBoat.getHeading()) / 360) * 2 * Math.PI) * myBoat.getSpeed();
         VMGText.setText(String.format("%.1f", VMG));
     }
 
@@ -322,9 +319,8 @@ public class ActivityDashboard extends FragmentActivity implements ConnectionCal
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null) {
-            myPos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
             String boatName = dataSourceBoats.getBoat(boatID);
-            myBoat = new Boat(myPos.latitude, myPos.longitude,boatName);
+            myBoat = new Boat(mLastLocation,boatName);
         } else {
            Toast.makeText(this, "no_location_detected", Toast.LENGTH_LONG).show();
         }

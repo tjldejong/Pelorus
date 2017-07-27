@@ -63,11 +63,11 @@ public class FragmentMap extends Fragment {
             public void onMapReady(GoogleMap mMap) {
                 googleMap = mMap;
                 myBoatMarker = googleMap.addMarker(new MarkerOptions()
-                        .position(myBoat.getPos())
+                        .position(myBoat.getLatLng())
                         .title("myBoat")
                         .flat(true)
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.boat)));
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myBoat.getPos(),15));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myBoat.getLatLng(),15));
             }
         });
 
@@ -75,9 +75,9 @@ public class FragmentMap extends Fragment {
     }
 
     public void updateBoatPosOnMap(int time, DataSourcePositions dataSourcePositions, int runID){
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myBoat.getPos(),15));
-        myBoatMarker.setPosition(myBoat.getPos());
-        myBoatMarker.setRotation(myBoat.getHeading(time, dataSourcePositions, runID));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myBoat.getLatLng(),15));
+        myBoatMarker.setPosition(myBoat.getLatLng());
+        myBoatMarker.setRotation(myBoat.getHeading());
     }
 
 }
